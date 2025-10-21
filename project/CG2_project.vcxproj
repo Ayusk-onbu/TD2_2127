@@ -296,7 +296,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="externals\imgui\imstb_rectpack.h" />
     <ClInclude Include="externals\imgui\imstb_textedit.h" />
     <ClInclude Include="externals\imgui\imstb_truetype.h" />
-    <ClInclude Include="Game2127.h" />
+    <ClInclude Include="Game2127\Game2127.h" />
+    <ClInclude Include="Game2127\include\title.h" />
     <ClInclude Include="Game3D\Player3D\Player3D.h" />
     <ClInclude Include="Scene\Game\GameScene.h" />
     <ClInclude Include="Scene\Scene.h" />

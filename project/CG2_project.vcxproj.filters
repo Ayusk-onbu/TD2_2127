@@ -623,8 +623,11 @@
     <ClInclude Include="Common\Structure\Advanced\WorldTransform.h">
       <Filter>Common\Structure\Advanced</Filter>
     </ClInclude>
-    <ClInclude Include="Game2127.h">
-      <Filter>Game2127</Filter>
+    <ClInclude Include="Game2127\Game2127.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\include\title.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
