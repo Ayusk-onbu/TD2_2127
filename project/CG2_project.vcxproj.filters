@@ -133,6 +133,9 @@
     <Filter Include="Common\Structure\Advanced">
       <UniqueIdentifier>{b65f3c2e-68b8-428e-989d-0ef105d11d18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game2127">
+      <UniqueIdentifier>{35e54e4b-58eb-4624-9ede-589fdd49c979}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
