@@ -213,6 +213,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Scene\Game\GameScene.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Scene\SceneDirector.cpp" />
+    <ClCompile Include="Scene\stageEditor\StageEditor.cpp" />
     <ClCompile Include="Scene\Test\TestScene.cpp" />
     <ClCompile Include="Scene\Transition\TransitionHub.cpp" />
     <ClCompile Include="UsefulTool\Camera\Camera.cpp" />
@@ -303,6 +304,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Scene\Game\GameScene.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Scene\SceneDirector.h" />
+    <ClInclude Include="Scene\stageEditor\StageEditor.h" />
     <ClInclude Include="Scene\Test\TestScene.h" />
     <ClInclude Include="Scene\Transition\TransitionHub.h" />
     <ClInclude Include="UsefulTool\Camera\Camera.h" />
