@@ -1,10 +1,10 @@
 #pragma once
-#include "Collision.h"
 #include "EnemyManager.h"
 #include "MapChipField.h"
-#include "mathStruct.h"
 #include <cassert>
 
+#include "AABB.h"
+#include "WorldTransform.h"
 
 class MapChipField;
 

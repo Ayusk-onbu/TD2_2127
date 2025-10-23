@@ -2,9 +2,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include "KamataEngine.h"
 
-using namespace KamataEngine;
 
 
 

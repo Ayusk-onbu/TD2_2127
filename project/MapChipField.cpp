@@ -4,7 +4,7 @@
 #include <map>
 #include <sstream>
 #include <string>
-
+#include"Vector3.h"
 namespace {
 
 	std::map<std::string, MapChipField::MapChipType> mapchipTable = {

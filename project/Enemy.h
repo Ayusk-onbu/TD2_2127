@@ -1,8 +1,8 @@
 #pragma once
-#include "mathStruct.h"
 #include <cassert>
-#include "Collision.h"
 
+#include"AABB.h"
+#include"Vector3.h"
 
 class Enemy {
 public:

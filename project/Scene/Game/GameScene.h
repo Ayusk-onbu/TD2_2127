@@ -47,13 +47,13 @@ private:
 	Model* enemyModel_ = nullptr;
 	Model* arrowModel_ = nullptr;
 
-	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
+	std::vector<std::vector<WorldTransform*>> worldTransformBlocks_;
 
 	// デバックカメラ無効
 	bool isDebugCameraActive_ = false;
 
 	// デバッグカメラ
-	KamataEngine::DebugCamera* debugCamera_ = nullptr;
+	DebugCamera* debugCamera_ = nullptr;
 
 	// マップチップフィールド
 	MapChipField* mapChipField_;
