@@ -5,15 +5,12 @@
 #include <memory>
 
 
-enum class Scene {
-	kTitle,
-	kStageSelect,
-	kGame,
-};
+
 
 class SceneDirector
 {
 public:
+
 	~SceneDirector();
 public:
 	void Initialize(Scene& firstScene);

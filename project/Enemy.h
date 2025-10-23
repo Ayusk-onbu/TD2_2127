@@ -3,7 +3,9 @@
 
 #include"AABB.h"
 #include"Vector3.h"
-
+#include"WorldTransform.h"
+#include"CameraSystem.h"
+#include "ModelObject.h"
 class Enemy {
 public:
 

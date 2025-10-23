@@ -1,6 +1,8 @@
 #include "GameScene.h"
 #include "BulletManager.h"
-#include "mathStruct.h"
+
+
+#include"Matrix4x4.h"
 
 int GameScene::selectedStageIndex_ = 0;
 
@@ -16,7 +18,7 @@ GameScene::~GameScene() {
 		row.clear(); // 行をクリア
 	}
 	worldTransformBlocks_.clear();
-	delete debugCamera_;
+	//delete debugCamera_;
 	delete mapChipField_;
 	delete cameraController_;
 	delete bulletManager_;
@@ -28,7 +30,6 @@ GameScene::~GameScene() {
 
 void GameScene::Initialize(int stageIndex) {
 
-	textureHandle_ = TextureManager::Load("UVchecker.png");
 	playerModel_ = Model::CreateFromOBJ("player", true);
 	blockModel_ = Model::Create();
 	bulletModel_ = Model::CreateFromOBJ("cube", true);
@@ -60,18 +61,18 @@ void GameScene::Initialize(int stageIndex) {
 
 	// カメラコントローラ
 	// 生成
-	cameraController_ = new CameraController();
-	// カメラをセット（初期化前にセット）
-	cameraController_->SetCamera(&camera_);
-	// 初期化
-	cameraController_->Initialize();
-	// 対象をセット (player_が生成された後なので安全)
-	cameraController_->SetTarget(player_);
-	// リセット(瞬間合わせ)
-	cameraController_->Reset();
+	//cameraController_ = new CameraController();
+	//// カメラをセット（初期化前にセット）
+	//cameraController_->SetCamera(&camera_);
+	//// 初期化
+	//cameraController_->Initialize();
+	//// 対象をセット (player_が生成された後なので安全)
+	//cameraController_->SetTarget(player_);
+	//// リセット(瞬間合わせ)
+	//cameraController_->Reset();
 
-	// デバッグカメラの生成
-	debugCamera_ = new DebugCamera(1280, 720);
+	//// デバッグカメラの生成
+	//debugCamera_ = new DebugCamera(1280, 720);
 }
 
 Scene GameScene::Update() {
@@ -116,35 +117,15 @@ Scene GameScene::Update() {
 				continue;
 			}
 
-			// アフィン変換の作成
-			Matrix4x4 affineMatrix = MakeAffineMatrix(worldTransformBlock->scale_, worldTransformBlock->rotation_, worldTransformBlock->translation_);
-			worldTransformBlock->matWorld_ = affineMatrix;
-			worldTransformBlock->TransferMatrix();
+			worldTransformBlock->LocalToWorld();
 		}
 	}
-	// デバック時のみキーを押したときデバックカメラを有効化
-#ifdef _DEBUG
 
-	if (Input::GetInstance()->TriggerKey(DIK_S)) {
-		isDebugCameraActive_ = !isDebugCameraActive_;
-	}
+	//// カメラコントローラーの更新
+	//cameraController_->Update();
+	//camera_.UpdateMatrix();
+	//camera_.TransferMatrix();
 
-#endif // DEBUG
-
-	if (isDebugCameraActive_) {
-		// デバッグカメラの更新
-		debugCamera_->Update();
-		camera_.matView = debugCamera_->GetCamera().matView;
-		camera_.matProjection = debugCamera_->GetCamera().matProjection;
-
-		// ビュープロジェクション行列の転送
-		camera_.TransferMatrix();
-	} else {
-		// カメラコントローラーの更新
-		cameraController_->Update();
-		camera_.UpdateMatrix();
-		camera_.TransferMatrix();
-	}
 	return Scene::kGame;
 }
 
@@ -153,7 +134,6 @@ void GameScene::Draw() {
 	// 自キャラの描画
 	player_->Draw();
 
-	Model::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
 	// ブロックの描画
 	for (uint32_t i = 0; i < worldTransformBlocks_.size(); ++i) {
 		for (uint32_t j = 0; j < worldTransformBlocks_[i].size(); ++j) {
@@ -167,7 +147,6 @@ void GameScene::Draw() {
 	}
 	bulletManager_->Draw();
 	enemyManager_->Draw();
-	Model::PostDraw();
 }
 
 void GameScene::GenerateBlocks() {
@@ -190,8 +169,11 @@ void GameScene::GenerateBlocks() {
 			if (mapChipType != MapChipField::MapChipType::kBlank) {
 				worldTransformBlocks_[i][j] = new WorldTransform();
 				worldTransformBlocks_[i][j]->Initialize();
-				worldTransformBlocks_[i][j]->translation_.x = kBlockWidth * j;
-				worldTransformBlocks_[i][j]->translation_.y = kBlockHeight * (numBlockVirtical - 1 - i);
+
+				Vector3 tempTranslation = worldTransformBlocks_[i][j]->get_.Translation();
+				tempTranslation.x = kBlockWidth * j;
+				tempTranslation.y = kBlockHeight * (numBlockVirtical - 1 - i);
+				worldTransformBlocks_[i][j]->set_.Translation(tempTranslation);
 			} else {
 				// ブロックがない場合は nullptr を設定
 				worldTransformBlocks_[i][j] = nullptr;

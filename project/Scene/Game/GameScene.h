@@ -6,6 +6,8 @@
 #include "Player.h"
 #include "TitleScene.h"
 #include <vector>
+#include <SceneDirector.h>
+#include"CameraSystem.h"
 
 class GameScene {
 public:
@@ -53,7 +55,7 @@ private:
 	bool isDebugCameraActive_ = false;
 
 	// デバッグカメラ
-	DebugCamera* debugCamera_ = nullptr;
+	/*DebugCamera* debugCamera_ = nullptr;*/
 
 	// マップチップフィールド
 	MapChipField* mapChipField_;
