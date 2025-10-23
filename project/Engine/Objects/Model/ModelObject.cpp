@@ -37,6 +37,9 @@ void ModelObject::Initialize(D3D12System& d3d12, const std::string& filename, co
 void ModelObject::Initialize(D3D12System& d3d12, ModelData& modelData) {
 	InitializeResource(d3d12,modelData);
 	InitializeData();
+	// ★抜けていた初期化を追加（filename版と同様）
+	worldTransform_.Initialize();
+	uvTransform_.Initialize();
 }
 
 //==========-+-==========

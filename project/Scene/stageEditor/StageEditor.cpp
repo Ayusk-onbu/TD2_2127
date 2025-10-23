@@ -47,7 +47,7 @@ void StageEditor::Initialize() {
 
     {
         auto m = std::make_unique<ModelObject>();
-        m->Initialize(d3d, "Plane.obj");  // 例
+        m->Initialize(d3d, "cube/cube.obj");  // 例
 		m->SetFngine(eng_);            // ★ 追加：Fngineセット必須
         m->textureHandle_ = whiteTexId_;
         modelTemplates_.push_back(std::move(m));
@@ -108,6 +108,13 @@ void StageEditor::PlaceModelAtCell(int cx, int cy, int tileId) {
         // 位置セット
         Vector3 pos = CellCenterToWorld(cx, cy);
         inst->worldTransform_.set_.Translation(pos);
+        // StageEditor::PlaceModelAtCell(...) で Translation の直後に追記
+// 位置
+        inst->worldTransform_.set_.Translation(CellCenterToWorld(cx, cy));
+
+        // スケール（どちらか片方が通るはず）
+        inst->worldTransform_.set_.Scale({ defaultScale_, defaultScale_, defaultScale_ });
+        // inst->worldTransform_.set_.Scaling({ defaultScale_, defaultScale_, defaultScale_ }); // ←こっちの命名の可能性も
 
         modelInstances_.push_back(std::move(inst));
     }
@@ -133,6 +140,7 @@ void StageEditor::EraseModelAtCell(int cx, int cy) {
 // Update: 入力処理（配置/消去/保存/読込）
 //======================
 void StageEditor::Update() {
+	CameraSystem::GetInstance()->Update();
     auto& key = InputManager::GetKey();
     auto& mouse = InputManager::GetMouse();
 

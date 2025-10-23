@@ -82,4 +82,8 @@ private:
 
     // ===== 配置済みモデルの描画用実体 =====
     std::vector<std::unique_ptr<ModelObject>> modelInstances_;
+
+    // StageEditor.h の private に追加
+    float defaultScale_ = 1.0f;  // モデルのスケール（等倍=1）
+
 };
