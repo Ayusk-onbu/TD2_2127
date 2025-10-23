@@ -34,8 +34,8 @@ namespace Transition {
 		void FadeToSlideRight(std::function<Scene* ()> factory, float outSec = 0.3f, float inSec = 0.3f);
 
 	private:
-		struct Impl;               // ←実体は.cpp
-		Impl* impl_;               // or std::unique_ptr<Impl>
+		struct Impl;               
+		Impl* impl_;               
 		Hub();
 		~Hub();
 		Hub(const Hub&) = delete;

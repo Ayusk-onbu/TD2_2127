@@ -10,6 +10,9 @@
 
 namespace Transition {
 
+	//===========================================
+	// Hub::Impl : トランジションの内部実装クラス
+	//===========================================
 	struct Hub::Impl {
 		Fngine* eng = nullptr;
 		SceneDirector* dir = nullptr;
@@ -29,7 +32,10 @@ namespace Transition {
 		static float Clamp01(float v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
 		static float Max(float a, float b) { return a > b ? a : b; }
 
-		// --- 置き換え: X/Y両対応のオフセット計算 ---
+		//===========================================
+		// ComputeSlideOffset :
+		//  現在の進行度に応じてスプライトのX/Y位置を計算
+		//===========================================
 		void ComputeSlideOffset(float progress01, bool entering, float& outX, float& outY) const {
 			outX = 0.0f; outY = 0.0f;
 			if (type == TransitionType::Fade) return;
@@ -67,7 +73,6 @@ namespace Transition {
 			}
 		}
 
-
 		static Matrix4x4 MakeTranslate(float tx, float ty) {
 			Matrix4x4 M{};
 			M.m[0][0] = M.m[1][1] = M.m[2][2] = M.m[3][3] = 1.0f;
@@ -80,6 +85,9 @@ namespace Transition {
 	Hub::Hub() :impl_(new Impl) {}
 	Hub::~Hub() {}
 
+	//===========================================
+	// Setup : トランジション用スプライト初期化
+	//===========================================
 	void Hub::Setup(Fngine* eng, SceneDirector* dir, int screenW, int screenH) {
 		impl_->eng = eng; impl_->dir = dir; impl_->sw = screenW; impl_->sh = screenH;
 		if (!impl_->initialized) {
@@ -98,7 +106,14 @@ namespace Transition {
 		}
 	}
 
+	//===========================================
+	// TickAndDraw : トランジションの進行と描画
+	//===========================================
 	void Hub::TickAndDraw() {
+
+		//------------------------------------------------------------
+		// 1) 状態遷移管理（フェードアウト→シーン切替→フェードイン）
+		//------------------------------------------------------------
 		if (impl_->state == Impl::State::Idle || !impl_->eng) return;
 
 		if (impl_->state == Impl::State::FadeOut) {
@@ -116,7 +131,9 @@ namespace Transition {
 			if (impl_->alpha <= 0.f) { impl_->alpha = 0.f; impl_->state = Impl::State::Idle; }
 		}
 
-		// スライド進捗 0→1（既存ロジックのまま）
+		//------------------------------------------------------------
+		// 2) スライド方向に応じたスプライト移動
+		//------------------------------------------------------------
 		const bool entering = (impl_->state == Impl::State::FadeOut);
 		float p = entering ? impl_->alpha : (1.0f - impl_->alpha);
 
@@ -129,7 +146,9 @@ namespace Transition {
 		Matrix4x4 WVP = CameraSystem::GetInstance()->GetActiveCamera()->DrawUI(T);
 		impl_->sprite.SetWVPData(WVP, T, T);
 
-		// フェード量（黒カーテンの不透明度）
+		//------------------------------------------------------------
+		// 3) 不透明度設定と描画
+		//------------------------------------------------------------
 		impl_->sprite.SetColor(Vector4(0, 0, 0, impl_->alpha));
 
 		auto& cmd = impl_->eng->GetCommand();
@@ -142,9 +161,9 @@ namespace Transition {
 
 	void Hub::SetDelta(float dt) { impl_->dt = dt; }
 
-	//==================================
+	//===========================================
 	// fade
-	//==================================
+	//===========================================
 	void Hub::FadeTo(std::function<Scene* ()> factory, float outSec, float inSec) {
 		if (impl_->state != Impl::State::Idle) return;
 		impl_->pendingFactory = std::move(factory);
@@ -156,6 +175,9 @@ namespace Transition {
 
 	void Hub::SetTransitionType(TransitionType type) { impl_->type = type; }
 
+	//===========================================
+	// ラッパ群：FadeToWith + 各種ショートカット
+	//===========================================
 	void FadeToWith(TransitionType type,
 		std::function<Scene* ()> factory,
 		float outSec, float inSec)
@@ -164,6 +186,7 @@ namespace Transition {
 		Hub::I().FadeTo(std::move(factory), outSec, inSec);
 	}
 
+	// 単体呼び出し用のショートカット
 	void FadeToFade(std::function<Scene* ()> f, float o, float i) {
 		FadeToWith(TransitionType::Fade, std::move(f), o, i);
 	}
@@ -180,7 +203,9 @@ namespace Transition {
 		FadeToWith(TransitionType::FadeSlideDown, std::move(f), o, i);
 	}
 
-
+	//===========================================
+	// Shutdown : 明示的なリソース解放
+	//===========================================
 	void Hub::Shutdown() {
 		if (!impl_) return;
 		// TextureManager を参照カウント型にしているならここでデクリメント/アンロード
@@ -191,12 +216,9 @@ namespace Transition {
 
 		//impl_->initialized = false;
 		delete impl_;
-
 	}
 
-
 	void Hub::FadeOverlay(float, float, float) { /* 省略：必要なら後で */ }
-
 
 	// ---- 薄いラッパ ----
 	void Setup(Fngine& e, SceneDirector& d, int w, int h) { Hub::I().Setup(&e, &d, w, h); }
