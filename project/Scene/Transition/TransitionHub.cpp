@@ -28,6 +28,52 @@ namespace Transition {
 
 		static float Clamp01(float v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
 		static float Max(float a, float b) { return a > b ? a : b; }
+
+		// --- 置き換え: X/Y両対応のオフセット計算 ---
+		void ComputeSlideOffset(float progress01, bool entering, float& outX, float& outY) const {
+			outX = 0.0f; outY = 0.0f;
+			if (type == TransitionType::Fade) return;
+
+			const float W = float(sw);
+			const float H = float(sh);
+
+			switch (type) {
+			case TransitionType::FadeSlideLeft:
+				// +W → 0 → -W （左へ流れる）
+				if (entering) outX = +W * (1.0f - progress01);
+				else          outX = -W * (progress01);
+				break;
+
+			case TransitionType::FadeSlideRight:
+				// -W → 0 → +W （右へ流れる）
+				if (entering) outX = -W * (1.0f - progress01);
+				else          outX = +W * (progress01);
+				break;
+
+			case TransitionType::FadeSlideUp:
+				// +Yが下の前提：+H（下）→ 0 → -H（上）= 上へ流れる
+				if (entering) outY = +H * (1.0f - progress01); // 下から入る
+				else          outY = -H * (progress01);        // 上へ抜ける
+				break;
+
+			case TransitionType::FadeSlideDown:
+				// -H（上）→ 0 → +H（下）= 下へ流れる
+				if (entering) outY = -H * (1.0f - progress01); // 上から入る
+				else          outY = +H * (progress01);        // 下へ抜ける
+				break;
+
+			default:
+				break;
+			}
+		}
+
+
+		static Matrix4x4 MakeTranslate(float tx, float ty) {
+			Matrix4x4 M{};
+			M.m[0][0] = M.m[1][1] = M.m[2][2] = M.m[3][3] = 1.0f;
+			M.m[3][0] = tx; M.m[3][1] = ty;
+			return M;
+		}
 	};
 
 	Hub& Hub::I() { static Hub s; return s; }
@@ -70,7 +116,22 @@ namespace Transition {
 			if (impl_->alpha <= 0.f) { impl_->alpha = 0.f; impl_->state = Impl::State::Idle; }
 		}
 
+		// スライド進捗 0→1（既存ロジックのまま）
+		const bool entering = (impl_->state == Impl::State::FadeOut);
+		float p = entering ? impl_->alpha : (1.0f - impl_->alpha);
+
+		// ←変更: XとYを両方計算
+		float offsetX = 0.0f, offsetY = 0.0f;
+		impl_->ComputeSlideOffset(p, entering, offsetX, offsetY);
+
+		// ←変更: Yも平行移動に反映
+		Matrix4x4 T = Hub::Impl::MakeTranslate(offsetX, offsetY);
+		Matrix4x4 WVP = CameraSystem::GetInstance()->GetActiveCamera()->DrawUI(T);
+		impl_->sprite.SetWVPData(WVP, T, T);
+
+		// フェード量（黒カーテンの不透明度）
 		impl_->sprite.SetColor(Vector4(0, 0, 0, impl_->alpha));
+
 		auto& cmd = impl_->eng->GetCommand();
 		auto& pso = impl_->eng->GetPSO();
 		auto& light = impl_->eng->GetLight();
@@ -81,6 +142,9 @@ namespace Transition {
 
 	void Hub::SetDelta(float dt) { impl_->dt = dt; }
 
+	//==================================
+	// fade
+	//==================================
 	void Hub::FadeTo(std::function<Scene* ()> factory, float outSec, float inSec) {
 		if (impl_->state != Impl::State::Idle) return;
 		impl_->pendingFactory = std::move(factory);
@@ -89,6 +153,33 @@ namespace Transition {
 		impl_->t = 0.f; impl_->alpha = 0.f;
 		impl_->state = Impl::State::FadeOut;
 	}
+
+	void Hub::SetTransitionType(TransitionType type) { impl_->type = type; }
+
+	void FadeToWith(TransitionType type,
+		std::function<Scene* ()> factory,
+		float outSec, float inSec)
+	{
+		Hub::I().SetTransitionType(type);
+		Hub::I().FadeTo(std::move(factory), outSec, inSec);
+	}
+
+	void FadeToFade(std::function<Scene* ()> f, float o, float i) {
+		FadeToWith(TransitionType::Fade, std::move(f), o, i);
+	}
+	void FadeToSlideLeft(std::function<Scene* ()> f, float o, float i) {
+		FadeToWith(TransitionType::FadeSlideLeft, std::move(f), o, i);
+	}
+	void FadeToSlideRight(std::function<Scene* ()> f, float o, float i) {
+		FadeToWith(TransitionType::FadeSlideRight, std::move(f), o, i);
+	}
+	void FadeToSlideUp(std::function<Scene* ()> f, float o, float i) {
+		FadeToWith(TransitionType::FadeSlideUp, std::move(f), o, i);
+	}
+	void FadeToSlideDown(std::function<Scene* ()> f, float o, float i) {
+		FadeToWith(TransitionType::FadeSlideDown, std::move(f), o, i);
+	}
+
 
 	void Hub::Shutdown() {
 		if (!impl_) return;
@@ -105,6 +196,7 @@ namespace Transition {
 
 
 	void Hub::FadeOverlay(float, float, float) { /* 省略：必要なら後で */ }
+
 
 	// ---- 薄いラッパ ----
 	void Setup(Fngine& e, SceneDirector& d, int w, int h) { Hub::I().Setup(&e, &d, w, h); }
