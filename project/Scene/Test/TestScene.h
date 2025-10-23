@@ -9,13 +9,12 @@ class TestScene
 {
 public:
 	TestScene() = default;
-	~TestScene() = default;
+	~TestScene()override = default;
 public:
 
 	// =================================
 	// Override Functions
 	// =================================
-
 	void Initialize() override;
 	void Update() override;
 	void Draw() override;
