@@ -147,6 +147,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bullet.cpp" />
+    <ClCompile Include="BulletManager.cpp" />
     <ClCompile Include="Common\Functions\Trigonometric.cpp" />
     <ClCompile Include="Common\MathUtils\MathUtils.cpp" />
     <ClCompile Include="Common\MathUtils\Physics\Collider\Collider.cpp" />
@@ -158,6 +160,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Common\Structure\Matrix\Matrix4x4.cpp" />
     <ClCompile Include="Common\Structure\Vector\Vector2.cpp" />
     <ClCompile Include="Common\Structure\Vector\Vector3.cpp" />
+    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EnemyManager.cpp" />
     <ClCompile Include="Engine\Core\Command\CommandList.cpp" />
     <ClCompile Include="Engine\Core\Command\CommandQueue.cpp" />
     <ClCompile Include="Engine\Core\Command\TheOrderCommand.cpp" />
@@ -210,11 +214,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Game3D\Player3D\Player3D.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MapChipField.cpp" />
     <ClCompile Include="Scene\Game\GameScene.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="Scene\SceneDirector.cpp" />
     <ClCompile Include="Scene\Test\TestScene.cpp" />
     <ClCompile Include="Scene\Transition\TransitionHub.cpp" />
+    <ClCompile Include="SelectScene.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
     <ClCompile Include="UsefulTool\Camera\Camera.cpp" />
     <ClCompile Include="UsefulTool\Camera\CameraController\CameraController.cpp" />
     <ClCompile Include="UsefulTool\Camera\CameraController\DenugCameraController.cpp" />
@@ -228,6 +235,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="UsefulTool\Time\Chronos.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bullet.h" />
+    <ClInclude Include="BulletManager.h" />
     <ClInclude Include="Common\Functions\Trigonometric.h" />
     <ClInclude Include="Common\MathUtils\MathUtils.h" />
     <ClInclude Include="Common\MathUtils\Physics\Collider\Collider.h" />
@@ -245,6 +254,8 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Common\Structure\Vector\Vector2.h" />
     <ClInclude Include="Common\Structure\Vector\Vector3.h" />
     <ClInclude Include="Common\Structure\Vector\Vector4.h" />
+    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="EnemyManager.h" />
     <ClInclude Include="Engine\Core\Command\CommandList.h" />
     <ClInclude Include="Engine\Core\Command\CommandQueue.h" />
     <ClInclude Include="Engine\Core\Command\TheOrderCommand.h" />
@@ -300,11 +311,14 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Game2127\Game2127.h" />
     <ClInclude Include="Game2127\include\title.h" />
     <ClInclude Include="Game3D\Player3D\Player3D.h" />
+    <ClInclude Include="MapChipField.h" />
     <ClInclude Include="Scene\Game\GameScene.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="Scene\SceneDirector.h" />
     <ClInclude Include="Scene\Test\TestScene.h" />
     <ClInclude Include="Scene\Transition\TransitionHub.h" />
+    <ClInclude Include="SelectScene.h" />
+    <ClInclude Include="TitleScene.h" />
     <ClInclude Include="UsefulTool\Camera\Camera.h" />
     <ClInclude Include="UsefulTool\Camera\CameraController\CameraController.h" />
     <ClInclude Include="UsefulTool\Camera\CameraSystem.h" />

@@ -136,6 +136,21 @@
     <Filter Include="Game2127">
       <UniqueIdentifier>{35e54e4b-58eb-4624-9ede-589fdd49c979}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene\Title">
+      <UniqueIdentifier>{6d8334ed-9201-4c81-ac7e-20a6f43c7b85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Select">
+      <UniqueIdentifier>{b590f466-59ea-40e7-b206-c5e868769e01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game3D\Bullet">
+      <UniqueIdentifier>{e6f3bef0-f77b-4fc5-b9fb-68bb9cef0e2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game3D\Enemy">
+      <UniqueIdentifier>{d1401164-6a8e-4886-a241-fb33cb37137e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UsefulTool\MapChip">
+      <UniqueIdentifier>{b39471aa-4461-4268-b189-3bd8e82c20be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -374,6 +389,27 @@
     </ClCompile>
     <ClCompile Include="Scene\Transition\TransitionHub.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleScene.cpp">
+      <Filter>Scene\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectScene.cpp">
+      <Filter>Scene\Select</Filter>
+    </ClCompile>
+    <ClCompile Include="BulletManager.cpp">
+      <Filter>Game3D\Bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="Bullet.cpp">
+      <Filter>Game3D\Bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>Game3D\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyManager.cpp">
+      <Filter>Game3D\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="MapChipField.cpp">
+      <Filter>UsefulTool\MapChip</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -634,6 +670,27 @@
     </ClInclude>
     <ClInclude Include="Scene\Transition\TransitionHub.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleScene.h">
+      <Filter>Scene\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectScene.h">
+      <Filter>Scene\Select</Filter>
+    </ClInclude>
+    <ClInclude Include="BulletManager.h">
+      <Filter>Game3D\Bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="Bullet.h">
+      <Filter>Game3D\Bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>Game3D\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyManager.h">
+      <Filter>Game3D\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="MapChipField.h">
+      <Filter>UsefulTool\MapChip</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

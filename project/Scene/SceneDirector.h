@@ -4,6 +4,13 @@
 #include "TestScene.h"
 #include <memory>
 
+
+enum class Scene {
+	kTitle,
+	kStageSelect,
+	kGame,
+};
+
 class SceneDirector
 {
 public:
