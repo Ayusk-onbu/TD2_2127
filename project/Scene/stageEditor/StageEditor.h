@@ -30,6 +30,13 @@ public:
 
     void BindEngine(Fngine* eng) { eng_ = eng; }
 
+    // 既存の ScreenToCell を「範囲外でも返す版」に差し替える宣言
+    bool ScreenToCellUnbounded(int sx, int sy, int& outCx, int& outCy) const;
+
+    // 範囲外セルを要求されたときにグリッドを自動拡張する
+    void ExpandToIncludeCell(int cx, int cy);
+    bool InBounds(int cx, int cy) const { return (0 <= cx && cx < gridCols_) && (0 <= cy && cy < gridRows_); }
+   
 private:
     // ===== グリッド表示 =====
     int   gridCols_ = 32;             // 列数
@@ -84,6 +91,9 @@ private:
     std::vector<std::unique_ptr<ModelObject>> modelInstances_;
 
     // StageEditor.h の private に追加
-    float defaultScale_ = 1.0f;  // モデルのスケール（等倍=1）
+    float defaultScale_ = 0.5f;  // モデルのスケール（等倍=1）
+
+    // class StageEditor の private: に追加
+    ImVec2 gridOffset_{ 0.0f, 0.0f };  // グリッドのスクロール（px）
 
 };

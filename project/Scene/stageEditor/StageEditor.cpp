@@ -70,23 +70,92 @@ void StageEditor::Finalize() {
 //======================
 // 画面→セル座標変換（ピクセル）
 //======================
+//bool StageEditor::ScreenToCell(int sx, int sy, int& outCx, int& outCy) const {
+//    if (sx < 0 || sy < 0) return false;
+//    outCx = static_cast<int>(sx / cellSize_);
+//    outCy = static_cast<int>(sy / cellSize_);
+//    if (outCx < 0 || outCx >= gridCols_) return false;
+//    if (outCy < 0 || outCy >= gridRows_) return false;
+//    return true;
+//}
+
 bool StageEditor::ScreenToCell(int sx, int sy, int& outCx, int& outCy) const {
-    if (sx < 0 || sy < 0) return false;
-    outCx = static_cast<int>(sx / cellSize_);
-    outCy = static_cast<int>(sy / cellSize_);
-    if (outCx < 0 || outCx >= gridCols_) return false;
-    if (outCy < 0 || outCy >= gridRows_) return false;
+    // gridOffset_ を考慮してセル計算（左上原点、+Y下）
+    const float gx = (sx - gridOffset_.x) / cellSize_;
+    const float gy = (sy - gridOffset_.y) / cellSize_;
+    const int cx = static_cast<int>(std::floor(gx));
+    const int cy = static_cast<int>(std::floor(gy));
+    if (cx < 0 || cy < 0 || cx >= gridCols_ || cy >= gridRows_) return false;
+    outCx = cx; outCy = cy;
     return true;
 }
+
+
+// 置き換え：元の ScreenToCell は使わず、この関数を使う
+bool StageEditor::ScreenToCellUnbounded(int sx, int sy, int& outCx, int& outCy) const {
+    // 画面左上原点のピクセル座標(sx,sy)から、グリッド座標へ
+    // gridOffset_ は Draw 側と共有（スクロール）
+    const float gx = (sx - gridOffset_.x) / cellSize_;
+    const float gy = (sy - gridOffset_.y) / cellSize_;
+    outCx = static_cast<int>(std::floor(gx));
+    outCy = static_cast<int>(std::floor(gy));
+    return true; // 範囲外でも true
+}
+
+void StageEditor::ExpandToIncludeCell(int cx, int cy) {
+    // 必要量を計算
+    int addLeft = (cx < 0) ? (-cx) : 0;
+    int addTop = (cy < 0) ? (-cy) : 0;
+    int addRight = (cx >= gridCols_) ? (cx - gridCols_ + 1) : 0;
+    int addBottom = (cy >= gridRows_) ? (cy - gridRows_ + 1) : 0;
+
+    if (addLeft == 0 && addTop == 0 && addRight == 0 && addBottom == 0) return; // 追加不要
+
+    const int newCols = gridCols_ + addLeft + addRight;
+    const int newRows = gridRows_ + addTop + addBottom;
+
+    // 1) 新しい配列を用意
+    std::vector<int> newTiles(newCols * newRows, 0);
+
+    // 2) 旧タイルを新配列へコピー（左/上に追加した分だけオフセットして配置）
+    for (int y = 0; y < gridRows_; ++y) {
+        for (int x = 0; x < gridCols_; ++x) {
+            const int nx = x + addLeft;
+            const int ny = y + addTop;
+            newTiles[ny * newCols + nx] = tiles_[y * gridCols_ + x];
+        }
+    }
+
+    // 3) モデル座標をシフト
+    for (auto& pm : placedModels_) {
+        pm.cx += addLeft;
+        pm.cy += addTop;
+    }
+    // 4) インスタンスも座標再反映（位置を更新）
+    for (size_t i = 0; i < placedModels_.size() && i < modelInstances_.size(); ++i) {
+        const auto& pm = placedModels_[i];
+        Vector3 pos = CellCenterToWorld(pm.cx, pm.cy);
+        modelInstances_[i]->worldTransform_.set_.Translation(pos);
+    }
+
+    // 5) 新サイズを反映
+    tiles_.swap(newTiles);
+    gridCols_ = newCols;
+    gridRows_ = newRows;
+}
+
+
 
 //======================
 // モデル配置ヘルパ
 //======================
 Vector3 StageEditor::CellCenterToWorld(int cx, int cy) const {
     const float wx = (cx + 0.5f) * worldCellSize_;
-    const float wz = (cy + 0.5f) * worldCellSize_;
-    return { wx, baseY_, wz };
+    const float wy = -(cy + 0.5f) * worldCellSize_;
+    return { wx, wy, baseY_ };
 }
+
+
 
 void StageEditor::PlaceModelAtCell(int cx, int cy, int tileId) {
     for (auto& m : placedModels_) {
@@ -176,11 +245,17 @@ void StageEditor::Update() {
     const bool lDown = mouse.IsButtonPress(0); // 左ボタン押下中
     const bool rDown = mouse.IsButtonPress(1); // 右ボタン押下中
 
+    // 範囲外でもセル座標を得る
     int cx, cy;
-    if (ScreenToCell(sx, sy, cx, cy)) {
+    if (ScreenToCellUnbounded(sx, sy, cx, cy)) {
+
+        // グリッド外なら自動拡張（左/上/右/下どこでもOK）
+        if (!InBounds(cx, cy)) {
+            ExpandToIncludeCell(cx, cy);
+        }
+
         const int idx = IndexOf(cx, cy);
 
-        // 左ボタン：配置（押しっぱなしでドラッグ塗り）
         if (lDown) {
             tiles_[idx] = currentTileId_;
             PlaceModelAtCell(cx, cy, currentTileId_);
@@ -190,7 +265,6 @@ void StageEditor::Update() {
             paintHold_ = false;
         }
 
-        // 右ボタン：消去
         if (rDown) {
             tiles_[idx] = eraseTileId_;
             EraseModelAtCell(cx, cy);
@@ -199,6 +273,7 @@ void StageEditor::Update() {
         else if (!rDown && eraseHold_) {
             eraseHold_ = false;
         }
+
 
         // 任意: 回転ショートカット（左クリック中に Q/E）
         if (lDown && key.PressKey(DIK_Q)) {
@@ -234,14 +309,13 @@ void StageEditor::Draw() {
     ImDrawList* dl = ImGui::GetBackgroundDrawList(); // 画面全体に描く
     const ImVec2 screenSize = ImGui::GetIO().DisplaySize;
 
-    // 設定値（必要ならImGui化）
+    // 設定値
     static bool  showGrid = true;
     static float thickness = lineThickness_;
-    static ImVec2 offset(0.0f, 0.0f); // スクロール用
 
     // ======== グリッド線 ========
     if (showGrid) {
-        const float half = 0.5f; // ピクセルセンタ補正
+        const float half = 0.5f;
         const ImU32 gridColorU32 = IM_COL32(
             (int)(gridColor_.x * 255.0f),
             (int)(gridColor_.y * 255.0f),
@@ -250,11 +324,11 @@ void StageEditor::Draw() {
         );
 
         // 垂直線
-        for (float x = std::fmod(offset.x, cellSize_); x < screenSize.x; x += cellSize_) {
+        for (float x = std::fmod(gridOffset_.x, cellSize_); x < screenSize.x; x += cellSize_) {
             dl->AddLine(ImVec2(x + half, 0), ImVec2(x + half, screenSize.y), gridColorU32, thickness);
         }
         // 水平線
-        for (float y = std::fmod(offset.y, cellSize_); y < screenSize.y; y += cellSize_) {
+        for (float y = std::fmod(gridOffset_.y, cellSize_); y < screenSize.y; y += cellSize_) {
             dl->AddLine(ImVec2(0, y + half), ImVec2(screenSize.x, y + half), gridColorU32, thickness);
         }
     }
@@ -268,8 +342,8 @@ void StageEditor::Draw() {
         const int sy = static_cast<int>((-posN.y + 0.5f) * kScreenH);
         int cx, cy;
         if (ScreenToCell(sx, sy, cx, cy)) {
-            const float x0 = cx * cellSize_ + offset.x;
-            const float y0 = cy * cellSize_ + offset.y;
+            const float x0 = cx * cellSize_ + gridOffset_.x;
+            const float y0 = cy * cellSize_ + gridOffset_.y;
             const float x1 = x0 + cellSize_;
             const float y1 = y0 + cellSize_;
             dl->AddRectFilled(ImVec2(x0, y0), ImVec2(x1, y1),
@@ -279,10 +353,10 @@ void StageEditor::Draw() {
         }
     }
 
-    // ======== 配置済みモデルのマーキング（デバッグ可視化） ========
+    // ======== 配置済みモデルのマーカー ========
     for (const auto& m : placedModels_) {
-        const float x0 = m.cx * cellSize_ + offset.x;
-        const float y0 = m.cy * cellSize_ + offset.y;
+        const float x0 = m.cx * cellSize_ + gridOffset_.x;
+        const float y0 = m.cy * cellSize_ + gridOffset_.y;
         const float cxp = x0 + cellSize_ * 0.5f;
         const float cyp = y0 + cellSize_ * 0.5f;
         dl->AddCircleFilled(ImVec2(cxp, cyp), 4.0f, IM_COL32(255, 200, 0, 220));
@@ -290,12 +364,12 @@ void StageEditor::Draw() {
         dl->AddText(ImVec2(x0 + 2, y0 + 2), IM_COL32(255, 255, 255, 220), buf);
     }
 
-    // ======== グリッド設定UI ========
+    // ======== UI ========
     if (ImGui::Begin("Grid Settings")) {
         ImGui::Checkbox("Show Grid", &showGrid);
         ImGui::SliderFloat("Cell Size (px)", &cellSize_, 8.0f, 128.0f, "%.1f");
         ImGui::SliderFloat("Line Thickness", &thickness, 1.0f, 4.0f, "%.1f");
-        ImGui::DragFloat2("Offset", &offset.x, 1.0f);
+        ImGui::DragFloat2("Offset", &gridOffset_.x, 1.0f); // ← gridOffset_ を直接操作
 
         ImGui::SeparatorText("Placement");
         ImGui::SliderInt("Current Tile ID", &currentTileId_, 1, 9);
@@ -305,8 +379,7 @@ void StageEditor::Draw() {
         ImGui::End();
     }
 
-    // ※ 本物の3Dモデル描画はあなたの通常レンダーパスで
-    // placedModels_ を走査し CellCenterToWorld() を使って WorldTransform へ反映してください
+    // ======== モデル描画 ========
     auto* cam = CameraSystem::GetInstance()->GetActiveCamera();
     for (auto& inst : modelInstances_) {
         inst->LocalToWorld();
@@ -314,6 +387,7 @@ void StageEditor::Draw() {
         inst->Draw();
     }
 }
+
 
 //======================
 // CSV: 保存
