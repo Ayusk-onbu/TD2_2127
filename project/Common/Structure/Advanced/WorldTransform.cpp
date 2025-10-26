@@ -1,14 +1,23 @@
 #include "WorldTransform.h"
 
 Vector3& WorldTransform::Get::Scale() {
+	if (parent_->isDirty_ == false) {
+		parent_->isDirty_ = true;
+	}
 	return parent_->transform_.scale_;
 }
 
 Vector3& WorldTransform::Get::Rotation() {
+	if (parent_->isDirty_ == false) {
+		parent_->isDirty_ = true;
+	}
 	return parent_->transform_.rotation_;
 }
 
 Vector3& WorldTransform::Get::Translation() {
+	if (parent_->isDirty_ == false) {
+		parent_->isDirty_ = true;
+	}
 	return parent_->transform_.translation_;
 }
 
