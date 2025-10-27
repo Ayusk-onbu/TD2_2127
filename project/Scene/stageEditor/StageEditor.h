@@ -121,5 +121,9 @@ private:
     inline int GridCols() const { return gridCols_; }
     inline int GridRows() const { return gridRows_; }
 
+    // 末尾あたりに追記
+// GameScene(MapChipField)が期待する固定サイズのCSVを吐く。
+// デフォルトは 横100 x 縦20（MapChipField の定数に合わせる）
+    bool ExportForGameScene(const char* outPath, int outCols = 100, int outRows = 20) const;
 
 };
