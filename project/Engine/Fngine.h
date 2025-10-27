@@ -47,6 +47,7 @@ public:
 	TheOrderCommand& GetCommand() { return command_; }
 	SRV& GetSRV() { return srv_; }
 	PSO& GetPSO() { return pso_; }
+	PSO& GetLinePSO() { return linePso_; }
 	DirectionLight& GetLight() { return light_; }
 private:
 
@@ -67,6 +68,7 @@ private:
 	RTV rtv_;
 	DSV dsv_;
 	PSO pso_;
+	PSO linePso_;
 	OffScreenRendering osr_;
 	D3D12_VIEWPORT viewport_;
 	D3D12_RECT scissorRect_;

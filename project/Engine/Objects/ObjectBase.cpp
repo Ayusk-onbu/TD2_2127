@@ -98,3 +98,8 @@ void ObjectBase::InitializeWVPD() {
 void ObjectBase::SetColor(const Vector4& color) {
 	materialData_->color = color;
 }
+
+void ObjectBase::SetLightEnable(const bool& isLight) {
+	isLight_ = isLight;
+	materialData_->enableLighting = isLight_;
+}

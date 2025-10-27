@@ -67,6 +67,7 @@ void Fngine::Initialize() {
 	d3d12_.GetDevice()->CreateDepthStencilView(dsv_.GetResource().Get(), &dsv_.GetDSVDesc(), dsv_.GetHeap().GetHeap()->GetCPUDescriptorHandleForHeapStart());
 	tachyonSync_.GetCGPU().Initialize(d3d12_.GetDevice());
 	pso_.Initialize(d3d12_, PSOTYPE::Normal);
+	linePso_.Initialize(d3d12_, PSOTYPE::Line);
 	osr_.Initialize(d3d12_, srv_, float(kClienWidth_), float(kClienHeight_));
 	viewport_.Width = static_cast<float>(window_.GetWindowRect().right);
 	viewport_.Height = static_cast<float>(window_.GetWindowRect().bottom);

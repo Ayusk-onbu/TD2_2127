@@ -31,3 +31,29 @@ void InputManager::Update() {
 		gamePad_[i].Update();
 	}
 }
+
+bool InputManager::GetJump() {
+	bool isJump = false;
+	if(InputManager::GetKey().PressedKey(DIK_SPACE)){
+		isJump = true;
+	}
+	//if(InputManager::GetGamePad(0).IsPressed())
+	return isJump;
+}
+
+bool InputManager::GetRight() {
+	bool isRight = false;
+	if(InputManager::GetKey().PressKey(DIK_RIGHT)){
+		isRight = true;
+	}
+
+	return isRight;
+}
+
+bool InputManager::GetLeft() {
+	bool isLeft = false;
+	if(InputManager::GetKey().PressKey(DIK_LEFT)){
+		isLeft = true;
+	}
+	return isLeft;
+}

@@ -55,6 +55,9 @@ void Camera::AddControllers(CameraType cameraTypes) {
 	if ((cameraTypes & CameraType::Normal) == CameraType::Normal) {
 		AddController(CameraType::Normal);
 	}
+	if ((cameraTypes & CameraType::Game) == CameraType::Game) {
+		AddController(CameraType::Game);
+	}
 }
 
 void Camera::AddController(CameraType cameraType) {
@@ -71,5 +74,8 @@ void Camera::AddController(CameraType cameraType) {
 	}
 	else if (cameraType == CameraType::Normal) {
 		controllers_.push_back(std::make_unique<NormalCameraController>());
+	}
+	else if (cameraType == CameraType::Game) {
+		controllers_.push_back(std::make_unique<GameCameraController>());
 	}
 }

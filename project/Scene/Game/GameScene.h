@@ -2,7 +2,8 @@
 #include "Fngine.h"
 #include "Scene.h"
 #include "WorldTransform.h"
-#include "Player3D.h"
+#include "Player.h"
+#include "EnemyManager.h"
 
 class GameScene 
 	:public Scene
@@ -21,9 +22,46 @@ public:
 public:
 	
 private:
-
+	// タイトルシーンの処理
+	void TitleUpdate();
+	// ゲームシーンの処理
+	void GameUpdate();
+	void GenerateBlocks();
 private:
+	std::unique_ptr<Player>player_ = nullptr;
 
+	std::vector<std::vector<ModelObject*>>blocks_;
+
+	// 3Dモデルデータ
+	std::unique_ptr<ModelObject> blockModel_ = nullptr;
+	std::unique_ptr<ModelObject> playerModel_ = nullptr;
+	std::unique_ptr<ModelObject> bulletModel_ = nullptr;
+	std::unique_ptr<ModelObject> enemyModel_ = nullptr;
+	std::unique_ptr<ModelObject> arrowModel_ = nullptr;
+
+	// マップチップフィールド
+	MapChipField* mapChipField_;
+
+	BulletManager* bulletManager_ = nullptr;
+	EnemyManager* enemyManager_ = nullptr;
+
+	//==== [  ] ====
+	// Title Scene についての変数
+	//==== ==== ====
+	float titleTimer_ = 0.0f;// タイトルの経過時間
+	float titleLoopTime_ = 4.0f;// 一タイトルのループ時間
+	bool isTitleFirst_ = false;// タイトル初回フラグ
+	float titleToGameFadeTimer_ = 1.0f;// タイトルからゲームへのフェード時間
+	float titleToGameFadeDuration_ = 2.0f;// タイトルからゲームへのフェード時間の長さ
+
+	// タイトルのカメラ制御
+	float titleCameraRadius_ = 30.0f;// タイトルのカメラの半径	
+
+	// タイトルのスプライト
+
+
+	// ゲームスタートフラグ
+	bool isGameStart_ = false;
 };
 
 

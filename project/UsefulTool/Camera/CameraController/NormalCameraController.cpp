@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include <algorithm>
 #include "Easing.h"
+#include "ImGuiManager.h"
 
 void NormalCameraController::Update(Camera& camera) {
 
@@ -21,4 +22,6 @@ void NormalCameraController::Update(Camera& camera) {
 	camera.GetViewProjectionMatrix() = Matrix4x4::Multiply(camera.GetViewProjectionMatrix(), Matrix4x4::Make::PerspectiveFov(
 		camera.GetProjection().fovY, camera.GetProjection().aspectRatio,
 		camera.GetProjection().nearClip, camera.GetProjection().farClip));
+
+	ImGuiManager::GetInstance()->Text("NormalCamera");
 }
