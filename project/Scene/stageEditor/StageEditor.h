@@ -96,4 +96,30 @@ private:
     // class StageEditor の private: に追加
     ImVec2 gridOffset_{ 0.0f, 0.0f };  // グリッドのスクロール（px）
 
+    // ======== 追加: 手動スクロール用の状態 ========
+    bool  panning_ = false;
+    ImVec2 panStartMouse_{ 0,0 };
+    ImVec2 panStartOffset_{ 0,0 };
+
+    // ======== 追加: 手動拡張API ========
+    void ExpandBy(int addLeft, int addTop, int addRight, int addBottom);
+
+    // ===== 追加: 初期グリッドサイズ（好きな値に変更OK） =====
+    static constexpr int kInitCols = 128;   // 例: 128×128 で開始
+    static constexpr int kInitRows = 128;
+
+    // ===== 追加: リサイズ時のアンカー（基準） =====
+    enum class GridAnchor {
+        TopLeft,   // 左上基準（既存が左上に据え付けのまま拡縮）
+        Center     // 中心基準（既存を中央に寄せて拡縮）
+    };
+
+    // ===== 追加: 直接サイズ変更するAPI =====
+    bool ResizeGrid(int newCols, int newRows, GridAnchor anchor);
+
+    // （必要なら）現在サイズを表示するヘルパ
+    inline int GridCols() const { return gridCols_; }
+    inline int GridRows() const { return gridRows_; }
+
+
 };
