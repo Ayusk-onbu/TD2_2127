@@ -28,6 +28,12 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	arrowObj_->textureHandle_ = obj_->textureHandle_;
 	playingState_ = PlayingState::kPlaying;
 
+	gunArrowObj_.Initialize(fngine->GetD3D12System(), "cube.obj", "resources/cube");
+	gunArrowObj_.worldTransform_.set_.Scale({ 0.1f,0.1f,28.0f });
+	gunArrowObj_.SetColor({1.0f,0.0f,0.0f,1.0f});
+	gunArrowObj_.SetFngine(fngine);
+	gunArrowObj_.textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
+	gunArrowObj_.SetLightEnable(false);
 }
 
 void Player::Update() {
@@ -128,9 +134,12 @@ void Player::Update() {
 		// 回転の時間を減少
 		apexSpinTimer_--;
 		{
+			// ここが弾の当てやすさに直結していると思うんだけど、
+			// 二回転と最初ディレイならどっちのほうがいいのだろうか
+
 			// 回転処理
 			float progress = 1.0f - (static_cast<float>(apexSpinTimer_) / kApexSpinDuration);
-			obj_->worldTransform_.get_.Rotation().z = -progress * 2.0f * kPi;
+			obj_->worldTransform_.get_.Rotation().z = -progress * 4.0f * kPi;
 		}
 		if (apexSpinTimer_ <= 0) {
 			//　回転の時間が終了したら
@@ -146,6 +155,13 @@ void Player::Update() {
 		Vector3 offsetDirection = {cosf(arrowObj_->worldTransform_.get_.Rotation().z), sinf(arrowObj_->worldTransform_.get_.Rotation().z), 0.0f};
 		arrowObj_->worldTransform_.get_.Translation() = obj_->worldTransform_.get_.Translation() + offsetDirection * offsetDistance;
 		arrowObj_->LocalToWorld();
+
+		gunArrowObj_.worldTransform_.get_.Rotation().y = obj_->worldTransform_.get_.Rotation().y + Deg2Rad(0);
+		gunArrowObj_.worldTransform_.get_.Rotation().z = obj_->worldTransform_.get_.Rotation().z + Deg2Rad(0);
+		offsetDistance = 26.0f;
+		offsetDirection = { cosf(gunArrowObj_.worldTransform_.get_.Rotation().z), sinf(gunArrowObj_.worldTransform_.get_.Rotation().z), 0.0f };
+		gunArrowObj_.worldTransform_.get_.Translation() = obj_->worldTransform_.get_.Translation() + offsetDirection * offsetDistance;
+		gunArrowObj_.LocalToWorld();
 
 		break;
 	}
@@ -220,7 +236,9 @@ void Player::Draw() {
 		arrowObj_->SetWVPData(CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(arrowObj_->worldTransform_.mat_));
 		arrowObj_->Draw();
 
-		
+		gunArrowObj_.LocalToWorld();
+		gunArrowObj_.SetWVPData(CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(gunArrowObj_.worldTransform_.mat_));
+		gunArrowObj_.Draw();
 	}
 }
 
@@ -409,6 +427,20 @@ void Player::StartApexSpin() {
 	velocity_ = {};
 	apexSpinTimer_ = kApexSpinDuration;
 	state_ = PlayerState::kApexSpin;
+	// 矢印の表示処理
+	arrowObj_->worldTransform_.get_.Rotation().y = obj_->worldTransform_.get_.Rotation().y;
+	arrowObj_->worldTransform_.get_.Rotation().z = obj_->worldTransform_.get_.Rotation().z + kPi;
+	float offsetDistance = 2.0f;
+	Vector3 offsetDirection = { cosf(arrowObj_->worldTransform_.get_.Rotation().z), sinf(arrowObj_->worldTransform_.get_.Rotation().z), 0.0f };
+	arrowObj_->worldTransform_.get_.Translation() = obj_->worldTransform_.get_.Translation() + offsetDirection * offsetDistance;
+	arrowObj_->LocalToWorld();
+
+	gunArrowObj_.worldTransform_.get_.Rotation().y = obj_->worldTransform_.get_.Rotation().y;
+	gunArrowObj_.worldTransform_.get_.Rotation().z = obj_->worldTransform_.get_.Rotation().z + 0.0f;
+	offsetDistance = 26.0f;
+	offsetDirection = { cosf(gunArrowObj_.worldTransform_.get_.Rotation().z), sinf(gunArrowObj_.worldTransform_.get_.Rotation().z), 0.0f };
+	gunArrowObj_.worldTransform_.get_.Translation() = obj_->worldTransform_.get_.Translation() + offsetDirection * offsetDistance;
+	gunArrowObj_.LocalToWorld();
 }
 
 AABB Player::GetAABB() {

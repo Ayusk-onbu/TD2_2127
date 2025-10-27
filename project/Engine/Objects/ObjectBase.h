@@ -31,6 +31,7 @@ public:
 	void InitializeMD(Vector4 color, bool isLight);
 	void InitializeWVPD();
 
+	void SetLightEnable(const bool& isLight);
 	void SetColor(const Vector4& color);
 	void SetFngine(Fngine* fngine) { fngine_ = fngine; }
 public:
@@ -52,5 +53,7 @@ public:
 	WorldTransform uvTransform_;
 	uint32_t textureHandle_;
 	uint32_t modelHandle_;
+
+	bool isLight_ = true;
 };
 

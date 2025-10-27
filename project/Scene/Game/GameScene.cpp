@@ -4,26 +4,36 @@
 #include "Transition/TransitionHub.h"
 #include "stageeditor/Stageeditor.h"
 #include "InputManager.h"
+#include "Easing.h"
+
 GameScene::~GameScene() {
-	
+	for (auto& row : blocks_) {
+		for (auto* worldTransformBlock : row) {
+			delete worldTransformBlock; // 各ワールド変換を解放
+		}
+		row.clear(); // 行をクリア
+	}
+	delete mapChipField_;
+	delete bulletManager_;
+	delete enemyManager_;
 	Log::ViewFile("Path GameScene ~");
 }
 
 void GameScene::Initialize() {
 	TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");
 
-	playerModel_ = new ModelObject;
+	playerModel_ = std::make_unique<ModelObject>();
 	playerModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
-	blockModel_ = new ModelObject;
+	blockModel_ = std::make_unique<ModelObject>();
 	blockModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
 	blockModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
-	bulletModel_ = new ModelObject;
+	bulletModel_ = std::make_unique<ModelObject>();
 	bulletModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
 	bulletModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
-	enemyModel_ = new ModelObject;
+	enemyModel_ = std::make_unique<ModelObject>();
 	enemyModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
 	enemyModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
-	arrowModel_ = new ModelObject;
+	arrowModel_ = std::make_unique<ModelObject>();
 	arrowModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
 	mapChipField_ = new MapChipField;
 	// ステージ番号に応じたCSVファイルを読み込む
@@ -33,12 +43,12 @@ void GameScene::Initialize() {
 	GenerateBlocks();
 
 	enemyManager_ = new EnemyManager();
-	enemyManager_->Initialize(enemyModel_);
+	enemyManager_->Initialize(enemyModel_.get());
 	enemyManager_->SetFngine(p_fngine_);
 	enemyManager_->SpawnEnemy({ 30.0f, 10.0f, 0.0f });
 
 	bulletManager_ = new BulletManager();
-	bulletManager_->Initialize(bulletModel_, enemyManager_, mapChipField_);
+	bulletManager_->Initialize(bulletModel_.get(), enemyManager_, mapChipField_);
 	bulletManager_->SetFngine(p_fngine_);
 
 	// 自キャラ生成
@@ -46,7 +56,7 @@ void GameScene::Initialize() {
 	// 座標をマップチップ番号で指定
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(4, 18);
 	// 自キャラの初期化
-	player_->Initialize(playerModel_, arrowModel_, playerPosition, bulletManager_,p_fngine_);
+	player_->Initialize(playerModel_.get(), arrowModel_.get(), playerPosition, bulletManager_, p_fngine_);
 
 	player_->SetMapChipField(mapChipField_);
 
@@ -54,11 +64,46 @@ void GameScene::Initialize() {
 	CameraSystem::GetInstance()->MakeCamera("DebugCamera", CameraType::Debug);
 	CameraSystem::GetInstance()->MakeCamera("GameCamera", CameraType::Game);
 	CameraSystem::GetInstance()->SetActiveCamera("GameCamera");
+
+	CameraSystem::GetInstance()->GetActiveCamera()->GetRadius() = titleCameraRadius_;
+	GameUpdate();
 }
 
-void GameScene::Update(){
+void GameScene::Update() {
 	CameraSystem::GetInstance()->Update();
 
+	TitleUpdate();
+	if (isGameStart_ == true) {
+		GameUpdate();
+	}
+
+#ifdef _DEBUG
+	auto& key = InputManager::GetKey();
+	if (key.PressedKey(DIK_F2)) {
+		Fngine* eng = /* ここはあなたの環境で取得する */ p_fngine_; // 例
+		Transition::FadeToSlideRight([eng] {
+			auto* ed = new StageEditor();
+			ed->BindEngine(eng);       // ★ 必須：StageEditorにエンジンを渡す
+			return ed;
+			}, 0.8f, 0.8f);
+	}
+
+	ImGui::Begin("Camera");
+	if (ImGui::Button("DebugMode")) {
+		CameraSystem::GetInstance()->SetActiveCamera("DebugCamera");
+	}
+	else if (ImGui::Button("GameMode")) {
+		CameraSystem::GetInstance()->SetActiveCamera("GameCamera");
+	}
+	else if (ImGui::Button("DebugmodeAdd")) {
+		CameraSystem::GetInstance()->GetActiveCamera()->AddControllers(CameraType::Debug);
+	}
+	ImGui::End();
+#endif // _DEBUG
+}
+
+void GameScene::GameUpdate() {
+	// ゲームの更新処理をここに移動
 	player_->Update();
 	bulletManager_->Update();
 	enemyManager_->Update();
@@ -109,27 +154,46 @@ void GameScene::Update(){
 		}
 	}
 
+}
 
-#ifdef _DEBUG
-	auto& key = InputManager::GetKey();
-	if (key.PressedKey(DIK_F2)) {
-		Fngine* eng = /* ここはあなたの環境で取得する */ p_fngine_; // 例
-		Transition::FadeToSlideRight([eng] {
-			auto* ed = new StageEditor();
-			ed->BindEngine(eng);       // ★ 必須：StageEditorにエンジンを渡す
-			return ed;
-			}, 0.8f, 0.8f);
-	}
+void GameScene::TitleUpdate() {
+	CameraSystem::GetInstance()->GetActiveCamera()->targetPos_ = playerModel_->worldTransform_.get_.Translation();
+	// タイトル画面の更新処理
+	if (isGameStart_ == false) {
+		ImGuiManager::GetInstance()->Text("Title Scene Update");
+		// ゲームを開始していない状態
+		if (isTitleFirst_ == false) {
+			titleTimer_ += 1.0f / 60.0f; // 仮に60FPSとして時間を進める	
+			if (titleTimer_ >= titleLoopTime_) {
+				//　時間がタイトルのループタイムを超えたら初期値に戻す
+				titleTimer_ = 0.0f;
+			}
+			if (InputManager::GetJump()) {
+				// 最初にタイトルのフラグを立てる(遷移が始まる)
+				isTitleFirst_ = true;
+				titleToGameFadeTimer_ = 0.0f;
+			}
+			ImGuiManager::GetInstance()->DrawDrag("titleTimer", titleTimer_);
+			ImGuiManager::GetInstance()->DrawDrag("titleLoopTimer", titleLoopTime_);
+		}
+		else if (isTitleFirst_) {
+			// 最初のフラグが立っていれば
+			titleToGameFadeTimer_ += 1.0f / 60.0f; // 仮に60FPSとして時間を進める
 
-	ImGui::Begin("Camera");
-	if (ImGui::Button("DebugMode")) {
-		CameraSystem::GetInstance()->SetActiveCamera("DebugCamera");
+			// ここに時間によるFadeやイージング処理を書く
+			// カメラの半径をイージングで変化
+			titleCameraRadius_ = Easing_Float(30.0f, 50.0f, titleToGameFadeTimer_, titleToGameFadeDuration_, EASINGTYPE::InSine);
+
+			if (titleToGameFadeTimer_ >= titleToGameFadeDuration_) {
+				isGameStart_ = true;
+			}
+			ImGuiManager::GetInstance()->DrawDrag("titleToFadeTimer", titleToGameFadeTimer_);
+			ImGuiManager::GetInstance()->DrawDrag("titleToGameFadeDuration", titleToGameFadeDuration_);
+		}
+		// 半径を代入
+		CameraSystem::GetInstance()->GetActiveCamera()->GetRadius() = titleCameraRadius_;
+		ImGuiManager::GetInstance()->DrawDrag("titleCameraRadius", titleCameraRadius_);
 	}
-	else if (ImGui::Button("GameMode")) {
-		CameraSystem::GetInstance()->SetActiveCamera("GameCamera");
-	}
-	ImGui::End();
-#endif // _DEBUG
 }
 
 void GameScene::Draw() {
@@ -138,7 +202,7 @@ void GameScene::Draw() {
 
 	// ブロックの描画
 	for (uint32_t i = 0; i < blocks_.size(); ++i) {
-		for (uint32_t j = 0; j <blocks_[i].size(); ++j) {
+		for (uint32_t j = 0; j < blocks_[i].size(); ++j) {
 			ModelObject* worldTransformBlock = blocks_[i][j];
 			if (!worldTransformBlock) {
 				continue;
@@ -171,7 +235,7 @@ void GameScene::GenerateBlocks() {
 
 			if (mapChipType != MapChipField::MapChipType::kBlank) {
 				blocks_[i][j] = new ModelObject();
-				blocks_[i][j]->Initialize(p_fngine_->GetD3D12System(),blockModel_->GetModelData());
+				blocks_[i][j]->Initialize(p_fngine_->GetD3D12System(), blockModel_->GetModelData());
 				blocks_[i][j]->SetFngine(p_fngine_);
 				blocks_[i][j]->textureHandle_ = blockModel_->textureHandle_;
 				blocks_[i][j]->worldTransform_.get_.Translation().x = kBlockWidth * j;
