@@ -8,7 +8,8 @@
 #include <sstream>
 #include <cmath>
 #include <imguiManager.h>
-
+#include "Transition/TransitionHub.h"
+#include "Game/GameScene.h"
 // 画面サイズ（Mouse::GetPosition の正規化をピクセルへ戻すために使用）
 // Mouse::GetPosition() が 1280x720 基準で正規化している前提で合わせる
 static constexpr int kScreenW = 1280;
@@ -289,6 +290,22 @@ void StageEditor::Update() {
     if (ImGui::GetIO().WantCaptureMouse) {
         paintHold_ = eraseHold_ = false;
         // ただしショートカット（Ctrl+S / Ctrl+L 等）は下で拾えるよう return しない
+    }
+
+   // ---------------------
+   // 0)GameScene へ遷移
+   // ---------------------
+    if (key.PressedKey(DIK_F2)) {
+        // ① エディタ内容をゲーム用CSVに吐く（ここは StageEditor のメンバーなので this でOK）
+        this->ExportForGameScene("Resources/stage/stage1.csv", 100, 20);
+
+        // ② そのまま GameScene へ遷移（エディタを new し直さない！）
+        Fngine* eng = p_fngine_; // あなたの環境で取得
+        Transition::FadeToSlideRight([eng] {
+            auto* gs = new GameScene();
+            //gs->BindEngine(eng);              // 必要なら
+            return gs;
+            }, 0.8f, 0.8f);
     }
 
     // ---------------------
@@ -641,5 +658,32 @@ bool StageEditor::LoadCSV(const std::string& path) {
             }
         }
     }
+    return true;
+}
+
+bool StageEditor::ExportForGameScene(const char* outPath, int outCols, int outRows) const {
+    std::ofstream ofs(outPath);
+    if (!ofs) { OutputDebugStringA("[StageEditor] Export failed (open).\n"); return false; }
+
+    // MapChipField::LoadMapChipCsv が期待する形式：
+    // ・サイズ行なし
+    // ・行ごとに outCols 個の 0/1 をカンマ区切り
+    // ・行は "上から下へ" outRows 行
+    // ここでは editor の tiles_ (gridCols_ x gridRows_) を参照しつつ
+    // はみ出しは 0 でパディング、超過はクリップ。
+
+    for (int y = 0; y < outRows; ++y) {
+        for (int x = 0; x < outCols; ++x) {
+            int v = 0;
+            if (0 <= x && x < gridCols_ && 0 <= y && y < gridRows_) {
+                v = tiles_[IndexOf(x, y)];
+            }
+            ofs << v;
+            if (x + 1 < outCols) ofs << ",";
+        }
+        ofs << "\n";
+    }
+
+    OutputDebugStringA("[StageEditor] Exported for GameScene.\n");
     return true;
 }
