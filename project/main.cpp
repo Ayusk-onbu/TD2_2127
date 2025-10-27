@@ -35,25 +35,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	std::unique_ptr<SceneDirector> scene = std::make_unique<SceneDirector>();
 	scene->SetUpFngine(*fngine);
-	scene->Initialize(*new TestScene());
-	
-	
+	scene->Initialize(*new GameScene());
+
+
 	MSG msg{};
 
 	//   基礎的な物の処理
 
 	//ウィンドウのｘボタンが押されるまでループ
 	while (msg.message != WM_QUIT) {
-		
+
 		//Widnowにメッセージが来てたら最優先で処理させる
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 		else {
 			ImGuiManager::GetInstance()->BeginFrame();
-			Chronos::Update();
 			InputManager::Update();
 #pragma region OffScreenRendering
 			/*ResourceBarrier barrierO = {};
@@ -67,7 +66,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//command.GetList().GetList()->RSSetViewports(1, &viewport);
 			//command.GetList().GetList()->RSSetScissorRects(1, &scissorRect);
 
-			
+
 
 			//model.SetWVPData(debugCamera.DrawMirrorCamera(worldMatrix, transformSprite.translate, {0.0f,0.0f,-1.0f}), worldMatrix, uvTransformMatrix);
 
@@ -80,9 +79,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGuiManager::GetInstance()->DrawAll();
 			fngine->EndFrame();
 		}
-		
+
 	}
-	
+
 	//COMの初期化を解除
 	CoUninitialize();
 	return 0;

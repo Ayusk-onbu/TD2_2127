@@ -1,5 +1,7 @@
 #include "Fngine.h"
 #include "TextureManager.h"
+#include "Chronos.h"
+#include "Transition/TransitionHub.h"
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 #pragma comment(lib,"dxguid.lib")//0103 ReportLiveobject
@@ -12,6 +14,9 @@ Fngine::~Fngine() {
 	ImGuiManager::GetInstance()->Shutdown();
 
 	TextureManager::GetInstance()->ReleaseInstance();
+
+	Transition::Shutdown();
+
 	//解放処理
 	tachyonSync_.GetCGPU().UnLoad();
 	music_.UnLoad();
@@ -53,16 +58,16 @@ void Fngine::Initialize() {
 		Log::ViewFile("CreateCommandList failed!!!\n");
 	}
 	swapChain_.Initialize(window_);
-	dxgi_.AssignTaskToEngineer(command_.GetQueue().GetQueue(), window_,swapChain_);
+	dxgi_.AssignTaskToEngineer(command_.GetQueue().GetQueue(), window_, swapChain_);
 	swapChain_.MakeResource();
 	srv_.InitializeHeap(d3d12_);
-	rtv_.Initialize(&d3d12_,swapChain_);
+	rtv_.Initialize(&d3d12_, swapChain_);
 	dsv_.InitializeHeap(d3d12_);
 	dsv_.MakeResource(d3d12_, kClienWidth_, kClienHeight_);
 	d3d12_.GetDevice()->CreateDepthStencilView(dsv_.GetResource().Get(), &dsv_.GetDSVDesc(), dsv_.GetHeap().GetHeap()->GetCPUDescriptorHandleForHeapStart());
 	tachyonSync_.GetCGPU().Initialize(d3d12_.GetDevice());
 	pso_.Initialize(d3d12_, PSOTYPE::Normal);
-	osr_.Initialize(d3d12_,srv_, float(kClienWidth_), float(kClienHeight_));
+	osr_.Initialize(d3d12_, srv_, float(kClienWidth_), float(kClienHeight_));
 	viewport_.Width = static_cast<float>(window_.GetWindowRect().right);
 	viewport_.Height = static_cast<float>(window_.GetWindowRect().bottom);
 	viewport_.TopLeftX = 0;
@@ -79,6 +84,7 @@ void Fngine::Initialize() {
 	InputManager::Initialize(window_.GetWindowClass(), window_.GetHwnd());
 	ImGuiManager::GetInstance()->SetImGui(window_.GetHwnd(), d3d12_.GetDevice().Get(), srv_.GetDescriptorHeap().GetHeap().Get());
 	TextureManager::GetInstance()->Initialize(*this);
+	Chronos::GetInstance()->Initialize();
 
 	light_.Initialize(d3d12_);
 }
@@ -141,7 +147,7 @@ void Fngine::EndFrame() {
 	swapChain_.GetSwapChain()->Present(1, 0);
 
 	tachyonSync_.GetCGPU().Update(command_.GetQueue().GetQueue());
-
+	Chronos::GetInstance()->Update();
 	// ここにFPS固定するための処理を書く
 
 	//次のフレーム用のコマンドリストを準備

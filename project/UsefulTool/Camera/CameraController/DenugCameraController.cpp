@@ -47,7 +47,7 @@ void DebugCameraController::Update(Camera& camera)
 		camera.GetProjection().fovY, camera.GetProjection().aspectRatio,
 		camera.GetProjection().nearClip, camera.GetProjection().farClip));
 
-	ImGuiManager::GetInstance()->Text("camera");
+	ImGuiManager::GetInstance()->Text("Debugcamera");
 	ImGuiManager::GetInstance()->DrawDrag("xAxis", camera.xAxis_);
 	ImGuiManager::GetInstance()->DrawDrag("yAxis", camera.yAxis_);
 	ImGuiManager::GetInstance()->DrawDrag("zAxis", camera.zAxis_);

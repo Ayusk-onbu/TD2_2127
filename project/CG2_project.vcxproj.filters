@@ -136,6 +136,12 @@
     <Filter Include="Game2127">
       <UniqueIdentifier>{35e54e4b-58eb-4624-9ede-589fdd49c979}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game2127\Player">
+      <UniqueIdentifier>{ea61c159-0cd7-4683-b4bf-f5959147a729}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game2127\Enemy">
+      <UniqueIdentifier>{e92a0a0d-4af0-491c-b7db-67af190bb414}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -371,6 +377,33 @@
     </ClCompile>
     <ClCompile Include="Common\Structure\Advanced\WorldTransform.cpp">
       <Filter>Common\Structure\Advanced</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Transition\TransitionHub.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\stageEditor\StageEditor.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Game2127\MapChipField.cpp">
+      <Filter>Game2127</Filter>
+    </ClCompile>
+    <ClCompile Include="Game2127\Enemy\Enemy.cpp">
+      <Filter>Game2127\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Game2127\Enemy\EnemyManager.cpp">
+      <Filter>Game2127\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Game2127\Player\Bullet.cpp">
+      <Filter>Game2127\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Game2127\Player\BulletManager.cpp">
+      <Filter>Game2127\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Game2127\Player\Player.cpp">
+      <Filter>Game2127\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="UsefulTool\Camera\CameraController\GameCameraController.cpp">
+      <Filter>UsefulTool\Camera\CameraController</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -623,8 +656,35 @@
     <ClInclude Include="Common\Structure\Advanced\WorldTransform.h">
       <Filter>Common\Structure\Advanced</Filter>
     </ClInclude>
-    <ClInclude Include="Game2127.h">
+    <ClInclude Include="Game2127\Game2127.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\include\title.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Transition\TransitionHub.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\stageEditor\StageEditor.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\MapChipField.h">
       <Filter>Game2127</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\Enemy\Enemy.h">
+      <Filter>Game2127\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\Enemy\EnemyManager.h">
+      <Filter>Game2127\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\Player\Bullet.h">
+      <Filter>Game2127\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\Player\BulletManager.h">
+      <Filter>Game2127\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\Player\Player.h">
+      <Filter>Game2127\Player</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

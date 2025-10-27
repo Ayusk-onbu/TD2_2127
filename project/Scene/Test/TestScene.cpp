@@ -2,7 +2,8 @@
 #include "SceneDirector.h"
 #include "ImGuiManager.h"
 #include "CameraSystem.h"
-
+#include "Transition/TransitionHub.h"
+#include "GameScene.h"
 // ================================
 // Override Functions
 // ================================
@@ -16,8 +17,14 @@ void TestScene::Initialize() {
 
 void TestScene::Update() {
 
-	if (InputManager::GetKey().PressKey(DIK_0)) {
-		hasRequestedNextScene_ = true;
+	if (InputManager::GetKey().PressKey(DIK_SPACE)) {
+		////hasRequestedNextScene_ = true;	
+		//Transition::FadeTo([]() { return new GameScene(); }, 1.2f, 1.0f);
+
+		// 種類を引数で渡すだけ
+		Transition::FadeToSlideUp([] { return new GameScene(); }, 2.0f, 1.0f);
+
+
 	}
 
 	CameraSystem::GetInstance()->Update();
@@ -41,9 +48,9 @@ void TestScene::Update() {
 	}
 	ImGui::End();
 
-	if (hasRequestedNextScene_) {
+	/*if (hasRequestedNextScene_) {
 		p_sceneDirector_->RequestChangeScene(new GameScene());
-	}
+	}*/
 }
 
 void TestScene::Draw() {
