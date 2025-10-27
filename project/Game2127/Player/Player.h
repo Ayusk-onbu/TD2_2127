@@ -97,6 +97,8 @@ private:
 	bool stompJumpAvailable_ = false;// ジャンプできるかどうか？
 
 	// Hamadaが追加した
+	ModelObject gunArrowObj_;
+
 	Fngine* fngine_ = nullptr;
 
 };

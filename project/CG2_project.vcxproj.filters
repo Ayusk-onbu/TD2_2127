@@ -180,9 +180,6 @@
     <ClCompile Include="UsefulTool\Time\Chronos.cpp">
       <Filter>UsefulTool\Time</Filter>
     </ClCompile>
-    <ClCompile Include="UsefulTool\Easing\Easing.cpp">
-      <Filter>UsefulTool\Easing</Filter>
-    </ClCompile>
     <ClCompile Include="UsefulTool\Random\RandomUtils.cpp">
       <Filter>UsefulTool\Random</Filter>
     </ClCompile>
@@ -405,6 +402,12 @@
     <ClCompile Include="UsefulTool\Camera\CameraController\GameCameraController.cpp">
       <Filter>UsefulTool\Camera\CameraController</Filter>
     </ClCompile>
+    <ClCompile Include="UsefulTool\Easing\Easing.cpp">
+      <Filter>UsefulTool\Easing</Filter>
+    </ClCompile>
+    <ClCompile Include="UsefulTool\Easing\EasingType.cpp">
+      <Filter>UsefulTool\Easing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imconfig.h">
@@ -442,9 +445,6 @@
     </ClInclude>
     <ClInclude Include="UsefulTool\Time\Chronos.h">
       <Filter>UsefulTool\Time</Filter>
-    </ClInclude>
-    <ClInclude Include="UsefulTool\Easing\Easing.h">
-      <Filter>UsefulTool\Easing</Filter>
     </ClInclude>
     <ClInclude Include="UsefulTool\Random\RandomUtils.h">
       <Filter>UsefulTool\Random</Filter>
@@ -685,6 +685,12 @@
     </ClInclude>
     <ClInclude Include="Game2127\Player\Player.h">
       <Filter>Game2127\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="UsefulTool\Easing\Easing.h">
+      <Filter>UsefulTool\Easing</Filter>
+    </ClInclude>
+    <ClInclude Include="UsefulTool\Easing\EasingType.h">
+      <Filter>UsefulTool\Easing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
