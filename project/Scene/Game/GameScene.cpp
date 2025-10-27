@@ -52,7 +52,8 @@ void GameScene::Initialize() {
 
 	// カメラコントローラ(なんか追加しないとか)
 	CameraSystem::GetInstance()->MakeCamera("DebugCamera", CameraType::Debug);
-	CameraSystem::GetInstance()->SetActiveCamera("DebugCamera");
+	CameraSystem::GetInstance()->MakeCamera("GameCamera", CameraType::Game);
+	CameraSystem::GetInstance()->SetActiveCamera("GameCamera");
 }
 
 void GameScene::Update(){
@@ -119,6 +120,15 @@ void GameScene::Update(){
 			return ed;
 			}, 0.8f, 0.8f);
 	}
+
+	ImGui::Begin("Camera");
+	if (ImGui::Button("DebugMode")) {
+		CameraSystem::GetInstance()->SetActiveCamera("DebugCamera");
+	}
+	else if (ImGui::Button("GameMode")) {
+		CameraSystem::GetInstance()->SetActiveCamera("GameCamera");
+	}
+	ImGui::End();
 #endif // _DEBUG
 }
 

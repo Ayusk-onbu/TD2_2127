@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "ModelObject.h"
 #include "AABB.h"
+#include "LineObject.h"
 
 
 class MapChipField;
@@ -71,7 +72,7 @@ private:
 	static inline const float kLimitFallSpeed = 0.5f;
 	static inline const float kJumpVelocity = 0.6f;
 	static inline const float kAirShotRecoil = 0.7f;
-	static inline const int kApexSpinDuration = 30;
+	static inline const int kApexSpinDuration = 60;
 
 	static inline const float kTimeTurn = 0.3f;
 	static inline const float kBlank = 0.02f;
@@ -87,11 +88,15 @@ private:
 	PlayerState state_ = PlayerState::kGround;
 	PlayingState playingState_ = PlayingState::kPlaying;
 	int apexSpinTimer_ = 0;
-	bool canAirShot_ = true;
+	bool canAirShot_ = true;// 弾が撃てるかどうか
 	MapChipField* mapChipField_ = nullptr;
 
 	static inline const float kWidth = 1.8f;
 	static inline const float kHeight = 1.8f;
 
-	bool stompJumpAvailable_ = false;
+	bool stompJumpAvailable_ = false;// ジャンプできるかどうか？
+
+	// Hamadaが追加した
+	Fngine* fngine_ = nullptr;
+
 };

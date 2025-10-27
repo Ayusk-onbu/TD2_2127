@@ -402,6 +402,9 @@
     <ClCompile Include="Game2127\Player\Player.cpp">
       <Filter>Game2127\Player</Filter>
     </ClCompile>
+    <ClCompile Include="UsefulTool\Camera\CameraController\GameCameraController.cpp">
+      <Filter>UsefulTool\Camera\CameraController</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imconfig.h">

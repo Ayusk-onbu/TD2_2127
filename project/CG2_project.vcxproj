@@ -225,6 +225,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="UsefulTool\Camera\Camera.cpp" />
     <ClCompile Include="UsefulTool\Camera\CameraController\CameraController.cpp" />
     <ClCompile Include="UsefulTool\Camera\CameraController\DenugCameraController.cpp" />
+    <ClCompile Include="UsefulTool\Camera\CameraController\GameCameraController.cpp" />
     <ClCompile Include="UsefulTool\Camera\CameraController\NormalCameraController.cpp" />
     <ClCompile Include="UsefulTool\Camera\CameraSystem.cpp" />
     <ClCompile Include="UsefulTool\Easing\Easing.cpp" />

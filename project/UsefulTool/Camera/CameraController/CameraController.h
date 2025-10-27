@@ -8,7 +8,7 @@ enum class CameraType : int {
 	None = 0,
 	Normal = 1 << 0,
 	Debug = 1 << 1,
-	
+	Game = 1 << 2,
 
 };
 
@@ -48,4 +48,14 @@ public:
 	virtual CameraType GetType() { return CameraType::Debug; }
 private:
 
+};
+
+class GameCameraController
+	:public CameraController
+{
+public:
+	void Update(Camera& camera) override;
+	virtual CameraType GetType() { return CameraType::Game; }
+private:
+	float cameraPlusPosY_ = 2.0f;
 };

@@ -10,6 +10,7 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	assert(model);
 	assert(arrowModel);
 	assert(bulletManager);
+	fngine_ = fngine;	
 
 	obj_ = model;
 	arrowObj_ = arrowModel;
@@ -26,9 +27,11 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	arrowObj_->SetFngine(fngine);
 	arrowObj_->textureHandle_ = obj_->textureHandle_;
 	playingState_ = PlayingState::kPlaying;
+
 }
 
 void Player::Update() {
+	CameraSystem::GetInstance()->GetActiveCamera()->targetPos_ = obj_->worldTransform_.transform_.translation_;
 	if (isDead_) {
 		playingState_ = PlayingState::kGameOver;
 		return;
@@ -36,14 +39,20 @@ void Player::Update() {
 
 	switch (state_) {
 	case PlayerState::kGround:
-		velocity_.y = 0;
+		// 地面にいるときの処理
+
+		velocity_.y = 0;// 落ちないように
 		if (InputManager::GetJump()) {
+			// ジャンプ開始
 			velocity_.y = kJumpVelocity;
-			stompJumpAvailable_ = false;
+			//stompJumpAvailable_ = false;
+			stompJumpAvailable_ = true;
 			canAirShot_ = true;
+			// ジャンプ状態へ移行
 			state_ = PlayerState::kJump;
 		}
 		if (InputManager::GetRight()) {
+			// 右移動
 			if (velocity_.x < 0.0f) {
 				velocity_.x *= (1.0f - kAttenuation);
 			}
@@ -54,6 +63,7 @@ void Player::Update() {
 				turnTimer_ = kTimeTurn;
 			}
 		} else if (InputManager::GetLeft()) {
+			// 左移動
 			if (velocity_.x > 0.0f) {
 				velocity_.x *= (1.0f - kAttenuation);
 			}
@@ -64,46 +74,72 @@ void Player::Update() {
 				turnTimer_ = kTimeTurn;
 			}
 		} else {
+			// 特に何も入力が無いとき
+			// 摩擦で減速
 			velocity_.x *= (1.0f - kAttenuation);
 		}
 		break;
 
 	case PlayerState::kJump:
+		// ジャンプしているときの処理
 		if (stompJumpAvailable_ && InputManager::GetJump()) {
+			// 敵をたおしてジャンプが可能な時に、ジャンプ入力があれば
 			StartApexSpin();
+
+			// ジャンプができなくなる
 			stompJumpAvailable_ = false;
 			break;
 		}
+		// jump中の重力
 		velocity_.y -= kGravityAcceleration;
-		if (velocity_.y <= 0.0f) {
-			StartApexSpin();
-		}
+		// この処理があると任意で回転出来ない
+		//if (velocity_.y <= 0.0f) {
+		//	// 頂上についた（速度がゼロになったら）
+		//	StartApexSpin();
+		//}
+
+
 		break;
 
 	case PlayerState::kApexSpin: {
+		// 回転しているときの処置
 		if (canAirShot_ && InputManager::GetJump()) {
+			// 弾が撃てる状態の時、かつジャンプ入力があった時
+
+			// 回転の値を抽出
 			float angle = obj_->worldTransform_.get_.Rotation().z;
+			// 弾の速度を計算
 			Vector3 bulletVelocity = {cosf(angle) * 0.8f, sinf(angle) * 0.8f, 0.0f};
+			// 弾を生成
 			bulletManager_->SpawnBullet(obj_->worldTransform_.get_.Translation(), bulletVelocity, this);
+			// 反動の計算
 			velocity_.x = -cosf(angle) * kAirShotRecoil;
 			velocity_.y = -sinf(angle) * kAirShotRecoil;
+			// 弾の発射フラグをfalseにする
 			canAirShot_ = false;
+			// ジャンプフラグもfalseにする
 			stompJumpAvailable_ = false;
+			// 回転状態を終了
 			obj_->worldTransform_.get_.Rotation().z = 0;
+			// 落下状態へ移行
 			state_ = PlayerState::kFall;
 			break;
 		}
-
+		// 回転の時間を減少
 		apexSpinTimer_--;
 		{
+			// 回転処理
 			float progress = 1.0f - (static_cast<float>(apexSpinTimer_) / kApexSpinDuration);
 			obj_->worldTransform_.get_.Rotation().z = -progress * 2.0f * kPi;
 		}
 		if (apexSpinTimer_ <= 0) {
+			//　回転の時間が終了したら
 			obj_->worldTransform_.get_.Rotation().z = 0;
+			// 落下状態に移行
 			state_ = PlayerState::kFall;
 		}
 
+		// 矢印の表示処理
 		arrowObj_->worldTransform_.get_.Rotation().y = obj_->worldTransform_.get_.Rotation().y;
 		arrowObj_->worldTransform_.get_.Rotation().z = obj_->worldTransform_.get_.Rotation().z + kPi;
 		float offsetDistance = 2.0f;
@@ -115,7 +151,9 @@ void Player::Update() {
 	}
 
 	case PlayerState::kFall:
+		// 落下状態の処理
 		if (stompJumpAvailable_ && InputManager::GetJump()) {
+			// 敵をたおしてジャンプが可能な時に、ジャンプ入力があれば
 			StartApexSpin();
 			stompJumpAvailable_ = false; 
 			break;                       
@@ -125,10 +163,11 @@ void Player::Update() {
 
 		break;
 	}
-
+	// 落下速度の制限
 	velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed, kLimitRunSpeed);
 	velocity_.y = std::clamp(velocity_.y, -kLimitFallSpeed, kJumpVelocity);
 
+	// マップチップとの当たり判定を取るための処理
 	CollisionMapInfo collisionMapInfo;
 	collisionMapInfo.moveVector = velocity_;
 
@@ -137,7 +176,14 @@ void Player::Update() {
 
 	OnCeilingCollision(collisionMapInfo);
 
-	if (state_ == PlayerState::kFall && collisionMapInfo.groundCollision) {
+	//if (state_ == PlayerState::kFall && collisionMapInfo.groundCollision) {
+	//	// 落ちている状態の時のみに地面に着地したら
+	//	state_ = PlayerState::kGround;
+	//	stompJumpAvailable_ = false;
+	//}
+
+	if (collisionMapInfo.groundCollision) {
+		// 地面に着地したら
 		state_ = PlayerState::kGround;
 		stompJumpAvailable_ = false;
 	}
@@ -173,6 +219,8 @@ void Player::Draw() {
 		arrowObj_->LocalToWorld();
 		arrowObj_->SetWVPData(CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(arrowObj_->worldTransform_.mat_));
 		arrowObj_->Draw();
+
+		
 	}
 }
 
