@@ -8,7 +8,8 @@
 #include <sstream>
 #include <cmath>
 #include <imguiManager.h>
-
+#include "Transition/TransitionHub.h"
+#include "Game/GameScene.h"
 // 画面サイズ（Mouse::GetPosition の正規化をピクセルへ戻すために使用）
 // Mouse::GetPosition() が 1280x720 基準で正規化している前提で合わせる
 static constexpr int kScreenW = 1280;
@@ -28,10 +29,11 @@ void StageEditor::Initialize() {
         // エンジン未Bindなら何もしない（戻ってもOK）
         return;
     }
-
+    gridCols_ = kInitCols;
+    gridRows_ = kInitRows;
     // タイル配列を初期化（全部0 = 空）
     tiles_.assign(gridCols_ * gridRows_, 0);
-
+    ResizeGrid(kInitCols, kInitRows, GridAnchor::TopLeft);
     // 白テクスチャ（線用）
     whiteTexId_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
     if (whiteTexId_ < 0) {
@@ -54,17 +56,30 @@ void StageEditor::Initialize() {
     }
     {
         auto m = std::make_unique<ModelObject>();
-        m->Initialize(d3d, "Plane.obj");
+        m->Initialize(d3d, "cube/cube.obj");
         m->SetFngine(eng_);
-        m->textureHandle_ = whiteTexId_;
+        m->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
         modelTemplates_.push_back(std::move(m));
     }
 
-    OutputDebugStringA("[StageEditor] Model templates loaded.\n");
+    if (s_cacheValid_) {                            // ①前回の配置をそのまま復元
+        placedModels_ = s_cachePlaced_;
+        RebuildInstancesFromPlaced_();
+        OutputDebugStringA("[StageEditor] Restored from RAM cache.\n");
+    }
+    else if (std::filesystem::exists(kAutoSavePath)) { // ②ファイルがあれば読み込み
+        LoadCSV(kAutoSavePath);
+        RebuildInstancesFromPlaced_();
+        OutputDebugStringA("[StageEditor] Autosave loaded.\n");
+    }
 }
 
 void StageEditor::Finalize() {
     // TextureManager が参照カウントなら特に不要
+    s_cachePlaced_ = placedModels_;  // メモリに保持（シーン切替で有効）
+    s_cacheValid_ = true;
+
+    SaveCSV(kAutoSavePath);
 }
 
 //======================
@@ -144,6 +159,80 @@ void StageEditor::ExpandToIncludeCell(int cx, int cy) {
     gridRows_ = newRows;
 }
 
+// ======== 手動拡張（四辺に任意セル数） ========
+void StageEditor::ExpandBy(int addLeft, int addTop, int addRight, int addBottom)
+{
+    // 既存の ExpandToIncludeCell を使って簡易に拡張します。
+    // 左/上を増やすと既存(0,0)が右下にずれるので、順番は左→上→右→下の順でOK。
+    if (addLeft > 0) { ExpandToIncludeCell(-addLeft, 0); }
+    if (addTop > 0) { ExpandToIncludeCell(0, -addTop); }
+    if (addRight > 0) { ExpandToIncludeCell(gridCols_ - 1 + addRight, 0); }
+    if (addBottom > 0) { ExpandToIncludeCell(0, gridRows_ - 1 + addBottom); }
+}
+
+// ===== 追加実装: グリッドリサイズ（内容は可能な限り保持） =====
+bool StageEditor::ResizeGrid(int newCols, int newRows, GridAnchor anchor)
+{
+    if (newCols <= 0 || newRows <= 0) return false;
+
+    const int oldCols = gridCols_;
+    const int oldRows = gridRows_;
+
+    // 変化なしなら何もしない
+    if (newCols == oldCols && newRows == oldRows) return true;
+
+    // 新しい配列を消しIDで初期化
+    std::vector<int> newTiles;
+    newTiles.assign(newCols * newRows, eraseTileId_);
+
+    // 既存→新配列へのオフセット（アンカーで決定）
+    int offX = 0;
+    int offY = 0;
+    if (anchor == GridAnchor::TopLeft) {
+        offX = 0;
+        offY = 0;
+    }
+    else { // Center
+        offX = (newCols - oldCols) / 2;
+        offY = (newRows - oldRows) / 2;
+    }
+
+    // タイルのコピー（はみ出す分は捨て）
+    for (int y = 0; y < oldRows; ++y) {
+        for (int x = 0; x < oldCols; ++x) {
+            const int nx = x + offX;
+            const int ny = y + offY;
+            if (0 <= nx && nx < newCols && 0 <= ny && ny < newRows) {
+                newTiles[ny * newCols + nx] = tiles_[y * oldCols + x];
+            }
+        }
+    }
+
+    // モデルの座標（セル座標）も同様にシフト＆範囲外は削除
+    if (offX != 0 || offY != 0) {
+        std::vector<PlacedModel> kept;
+        kept.reserve(placedModels_.size());
+        for (auto& m : placedModels_) {
+            const int nx = m.cx + offX;
+            const int ny = m.cy + offY;
+            if (0 <= nx && nx < newCols && 0 <= ny && ny < newRows) {
+                auto nm = m;
+                nm.cx = nx;
+                nm.cy = ny;
+                kept.push_back(nm);
+            }
+        }
+        placedModels_.swap(kept);
+    }
+
+    // 反映
+    tiles_.swap(newTiles);
+    gridCols_ = newCols;
+    gridRows_ = newRows;
+
+    return true;
+}
+
 
 
 //======================
@@ -151,7 +240,7 @@ void StageEditor::ExpandToIncludeCell(int cx, int cy) {
 //======================
 Vector3 StageEditor::CellCenterToWorld(int cx, int cy) const {
     const float wx = (cx + 0.5f) * worldCellSize_;
-    const float wy = -(cy + 0.5f) * worldCellSize_;
+    const float wy = (cy + 0.5f) * worldCellSize_;
     return { wx, wy, baseY_ };
 }
 
@@ -189,9 +278,6 @@ void StageEditor::PlaceModelAtCell(int cx, int cy, int tileId) {
     }
 }
 
-
-
-
 void StageEditor::EraseModelAtCell(int cx, int cy) {
     for (size_t i = 0; i < placedModels_.size(); ++i) {
         if (placedModels_[i].cx == cx && placedModels_[i].cy == cy) {
@@ -203,7 +289,6 @@ void StageEditor::EraseModelAtCell(int cx, int cy) {
         }
     }
 }
-
 
 //======================
 // Update: 入力処理（配置/消去/保存/読込）
@@ -217,6 +302,25 @@ void StageEditor::Update() {
     if (ImGui::GetIO().WantCaptureMouse) {
         paintHold_ = eraseHold_ = false;
         // ただしショートカット（Ctrl+S / Ctrl+L 等）は下で拾えるよう return しない
+    }
+
+   // ---------------------
+   // 0)GameScene へ遷移
+   // ---------------------
+    if (key.PressedKey(DIK_F2)) {
+        SaveCSV(kAutoSavePath);
+        s_cachePlaced_ = placedModels_;
+        s_cacheValid_ = true;
+        // ① エディタ内容をゲーム用CSVに吐く（ここは StageEditor のメンバーなので this でOK）
+        this->ExportForGameScene("Resources/stage/stage1.csv", 21, 500);
+
+        // ② そのまま GameScene へ遷移（エディタを new し直さない！）
+        Fngine* eng = p_fngine_; // あなたの環境で取得
+        Transition::FadeToSlideRight([eng] {
+            auto* gs = new GameScene();
+            //gs->BindEngine(eng);              // 必要なら
+            return gs;
+            }, 0.8f, 0.8f);
     }
 
     // ---------------------
@@ -242,51 +346,53 @@ void StageEditor::Update() {
     const int sx = static_cast<int>((posN.x + 0.5f) * kScreenW);
     const int sy = static_cast<int>((-posN.y + 0.5f) * kScreenH);
 
-    const bool lDown = mouse.IsButtonPress(0); // 左ボタン押下中
-    const bool rDown = mouse.IsButtonPress(1); // 右ボタン押下中
+    //const bool lDown = mouse.IsButtonPress(0); // 左ボタン押下中
+    //const bool rDown = mouse.IsButtonPress(1); // 右ボタン押下中
 
     // 範囲外でもセル座標を得る
     int cx, cy;
     if (ScreenToCellUnbounded(sx, sy, cx, cy)) {
 
-        // グリッド外なら自動拡張（左/上/右/下どこでもOK）
+        const bool lDown = mouse.IsButtonPress(0);
+        const bool rDown = mouse.IsButtonPress(1);
+
+        // 範囲外は描画/配置ロジックに入らず終了（＝拡張もしない）
         if (!InBounds(cx, cy)) {
-            ExpandToIncludeCell(cx, cy);
+            if (!lDown) paintHold_ = false;
+            if (!rDown) eraseHold_ = false;
+            return;
         }
 
+        // ここから下は「範囲内」確定
         const int idx = IndexOf(cx, cy);
 
+        // 左ボタン：ペイント
         if (lDown) {
             tiles_[idx] = currentTileId_;
             PlaceModelAtCell(cx, cy, currentTileId_);
             paintHold_ = true;
         }
-        else if (!lDown && paintHold_) {
+        else if (paintHold_) {
             paintHold_ = false;
         }
 
+        // 右ボタン：消し
         if (rDown) {
             tiles_[idx] = eraseTileId_;
             EraseModelAtCell(cx, cy);
             eraseHold_ = true;
         }
-        else if (!rDown && eraseHold_) {
+        else if (eraseHold_) {
             eraseHold_ = false;
         }
 
-
-        // 任意: 回転ショートカット（左クリック中に Q/E）
+        // 追加：回転ショートカット（必要なければ削除OK）
         if (lDown && key.PressKey(DIK_Q)) {
             for (auto& m : placedModels_) if (m.cx == cx && m.cy == cy) { m.rotY -= 90.f; break; }
         }
         if (lDown && key.PressKey(DIK_E)) {
             for (auto& m : placedModels_) if (m.cx == cx && m.cy == cy) { m.rotY += 90.f; break; }
         }
-    }
-    else {
-        // 画面外に出たらドラッグフラグだけ解除
-        if (!lDown) paintHold_ = false;
-        if (!rDown) eraseHold_ = false;
     }
 
     // ---------------------
@@ -300,6 +406,39 @@ void StageEditor::Update() {
     if (ctrl && key.PressedKey(DIK_L)) {
         LoadCSV("stage.csv");
     }
+
+    // ===== 手動スクロール（中ボタン or Space+左ドラッグ） =====
+    {
+        Vector2 posN{ 0,0 };
+        mouse.GetPosition(posN);
+        ImVec2 mousePx{
+            (posN.x + 0.5f) * kScreenW,
+            (-posN.y + 0.5f) * kScreenH
+        };
+
+        const bool mid = mouse.IsButtonPress(2);
+        const bool space = key.PressKey(DIK_SPACE);
+        const bool lbtn = mouse.IsButtonPress(0);
+
+        const bool beginPan = (!panning_) && (mid || (space && lbtn)) && !ImGui::GetIO().WantCaptureMouse;
+        const bool endPan = panning_ && !(mid || (space && lbtn));
+
+        if (beginPan) {
+            panning_ = true;
+            panStartMouse_ = mousePx;
+            panStartOffset_ = gridOffset_;
+        }
+        else if (endPan) {
+            panning_ = false;
+        }
+
+        if (panning_) {
+            ImVec2 delta{ mousePx.x - panStartMouse_.x, mousePx.y - panStartMouse_.y };
+            gridOffset_.x = panStartOffset_.x + delta.x;
+            gridOffset_.y = panStartOffset_.y + delta.y;
+        }
+    }
+
 }
 
 //======================
@@ -376,6 +515,62 @@ void StageEditor::Draw() {
         ImGui::SliderFloat("World Cell Size", &worldCellSize_, 0.25f, 5.0f, "%.2f");
         ImGui::SliderFloat("Base Y", &baseY_, -5.0f, 5.0f, "%.2f");
         ImGui::Text("LeftClick=Place, RightClick=Erase, Q/E=Rotate (holding)");
+
+        // ===== ImGui: 手動拡張UI（任意） =====
+        static int grow = 1;
+        ImGui::SeparatorText("Manual Expand");
+        ImGui::SetNextItemWidth(120);
+        ImGui::InputInt("Cells", &grow);
+        grow = (grow < 1) ? 1 : grow;
+
+        if (ImGui::Button("+Left")) { ExpandBy(grow, 0, 0, 0); }
+        ImGui::SameLine();
+        if (ImGui::Button("+Right")) { ExpandBy(0, 0, grow, 0); }
+        ImGui::SameLine();
+        if (ImGui::Button("+Top")) { ExpandBy(0, grow, 0, 0); }
+        ImGui::SameLine();
+        if (ImGui::Button("+Bottom")) { ExpandBy(0, 0, 0, grow); }
+
+        // ★ 既存の "Grid Settings" パネル内のどこかに追記
+        ImGui::SeparatorText("Grid Size");
+
+        // 現在値のローカル編集用バッファ
+        static int uiCols = 0, uiRows = 0;
+        static int anchorIdx = 0; // 0:TopLeft, 1:Center
+
+        if (uiCols == 0) uiCols = GridCols();
+        if (uiRows == 0) uiRows = GridRows();
+
+        ImGui::SetNextItemWidth(120);
+        ImGui::InputInt("Cols", &uiCols);
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(120);
+        ImGui::InputInt("Rows", &uiRows);
+
+        const char* anchorItems[] = { "Top-Left", "Center" };
+        ImGui::SetNextItemWidth(120);
+        ImGui::Combo("Anchor", &anchorIdx, anchorItems, IM_ARRAYSIZE(anchorItems));
+
+        ImGui::SameLine();
+        if (ImGui::Button("Apply Size")) {
+            uiCols = (uiCols < 1) ? 1 : uiCols;
+            uiRows = (uiRows < 1) ? 1 : uiRows;
+            ResizeGrid(uiCols, uiRows, anchorIdx == 0 ? GridAnchor::TopLeft : GridAnchor::Center);
+            // 適用後の値で同期
+            uiCols = GridCols();
+            uiRows = GridRows();
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Reset to Init")) {
+            ResizeGrid(kInitCols, kInitRows, GridAnchor::TopLeft);
+            uiCols = GridCols();
+            uiRows = GridRows();
+        }
+
+        ImGui::Text("Current: %d x %d", GridCols(), GridRows());
+
+
         ImGui::End();
     }
 
@@ -479,4 +674,51 @@ bool StageEditor::LoadCSV(const std::string& path) {
         }
     }
     return true;
+}
+
+bool StageEditor::ExportForGameScene(const char* outPath, int outCols, int outRows) const {
+    std::ofstream ofs(outPath);
+    if (!ofs) { OutputDebugStringA("[StageEditor] Export failed (open).\n"); return false; }
+
+    // MapChipField::LoadMapChipCsv が期待する形式：
+    // ・サイズ行なし
+    // ・行ごとに outCols 個の 0/1 をカンマ区切り
+    // ・行は "上から下へ" outRows 行
+    // ここでは editor の tiles_ (gridCols_ x gridRows_) を参照しつつ
+    // はみ出しは 0 でパディング、超過はクリップ。
+
+    for (int y = 0; y < outRows; ++y) {
+        for (int x = 0; x < outCols; ++x) {
+            int v = 0;
+            if (0 <= x && x < gridCols_ && 0 <= y && y < gridRows_) {
+                v = tiles_[IndexOf(x, y)];
+            }
+            ofs << v;
+            if (x + 1 < outCols) ofs << ",";
+        }
+        ofs << "\n";
+    }
+
+    OutputDebugStringA("[StageEditor] Exported for GameScene.\n");
+    return true;
+}
+
+void StageEditor::RebuildInstancesFromPlaced_() {
+    modelInstances_.clear();
+
+    auto& d3d = eng_->GetD3D12System(); // あなたの取得方法に合わせてください
+    for (auto& pm : placedModels_) {
+        if (pm.tileId < 1 || pm.tileId >(int)modelTemplates_.size()) continue;
+
+        auto inst = std::make_unique<ModelObject>();
+        inst->Initialize(d3d, modelTemplates_[pm.tileId - 1]->GetModelData());
+        inst->SetFngine(eng_);
+        inst->textureHandle_ = whiteTexId_;
+
+        // セル中心→ワールド変換はあなたの既存関数に合わせてください
+        inst->worldTransform_.set_.Translation(CellCenterToWorld(pm.cx, pm.cy));
+        inst->worldTransform_.set_.Scale({ defaultScale_, defaultScale_, defaultScale_ });
+
+        modelInstances_.push_back(std::move(inst));
+    }
 }
