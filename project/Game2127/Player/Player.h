@@ -7,6 +7,7 @@
 #include "ModelObject.h"
 #include "AABB.h"
 #include "LineObject.h"
+#include "SpriteObject.h"
 
 
 class MapChipField;
@@ -102,6 +103,9 @@ private:
 	Vector3 savePoint_ = {};
 	float aliveTimer_ = 0.0f;// 復活時間
 	float kAliveTime_ = 2.0f;// 復活するための時間
+
+	SpriteObject isGunSprite_;
+	WorldTransform isGunSpriteWorldTransform_;
 
 	Fngine* fngine_ = nullptr;
 

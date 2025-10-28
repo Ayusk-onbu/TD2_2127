@@ -36,6 +36,10 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	gunArrowObj_.textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	gunArrowObj_.SetLightEnable(false);
 
+	isGunSprite_.Initialize(fngine->GetD3D12System(),100.0f,100.0f);
+	isGunSpriteWorldTransform_.Initialize();
+	isGunSpriteWorldTransform_.set_.Rotation({0.0f,Deg2Rad(0),0.0f});
+
 	savePoint_ = position;
 }
 
@@ -245,9 +249,26 @@ void Player::Update() {
 	obj_->LocalToWorld();
 
 	ImGuiManager::GetInstance()->DrawDrag("Player : Pos", obj_->worldTransform_.get_.Translation());
+	if (canAirShot_) {
+		ImGuiManager::GetInstance()->Text("Can Air Shot");
+	}
 }
 
 void Player::Draw() {
+
+	if (canAirShot_) {
+		//isGunSpriteWorldTransform_.set_.Translation(obj_->worldTransform_.get_.Translation());
+		//isGunSpriteWorldTransform_.get_.Translation().x += 1.0f;
+		//isGunSpriteWorldTransform_.get_.Translation().y += 2.0f;
+		isGunSpriteWorldTransform_.LocalToWorld();
+		isGunSprite_.SetWVPData(
+			CameraSystem::GetInstance()->GetActiveCamera()->DrawUI(isGunSpriteWorldTransform_.mat_),
+			isGunSpriteWorldTransform_.mat_,
+			Matrix4x4::Make::Identity()
+		);
+		isGunSprite_.Draw(fngine_->GetCommand(), fngine_->GetPSO(), fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(1));
+	}
+
 	obj_->LocalToWorld();
 	obj_->SetWVPData(CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(obj_->worldTransform_.mat_));
 	obj_->Draw();
