@@ -23,7 +23,7 @@ void GameCameraController::Update(Camera& camera) {
 	// カメラの移動制限
 	camera.targetPos_.x = std::clamp(camera.targetPos_.x, 20.0f, 20.0f); // 左右の制限
 	//　下の処理だと酔いやすそうなのでLerpなどで追うような形にする
-	camera.targetPos_.y = std::clamp(camera.targetPos_.y, 10.0f, 100.0f); // 地面より下に行かないようにする
+	camera.targetPos_.y = std::clamp(camera.targetPos_.y, 10.0f, 1000.0f); // 地面より下に行かないようにする
 
 	camera.GetTranslation().x = camera.targetPos_.x + camera.GetRadius() * std::cos(theta) * std::cos(phi);
 	camera.GetTranslation().y = (camera.targetPos_.y) + camera.GetRadius() * std::sin(theta);

@@ -36,6 +36,10 @@ public:
     // 範囲外セルを要求されたときにグリッドを自動拡張する
     void ExpandToIncludeCell(int cx, int cy);
     bool InBounds(int cx, int cy) const { return (0 <= cx && cx < gridCols_) && (0 <= cy && cy < gridRows_); }
+
+    // StageEditor.h (private:)
+    void RebuildTilesFromPlaced_();
+
    
 private:
     // ===== グリッド表示 =====
@@ -141,5 +145,9 @@ private:
     // --- 追記: 復元用ヘルパ ---
 private:
     void RebuildInstancesFromPlaced_();
+
+    // StageEditor.h の public か private に追記
+    bool LoadMarkersFromGameCsv(const std::string& path);
+
 
 };
