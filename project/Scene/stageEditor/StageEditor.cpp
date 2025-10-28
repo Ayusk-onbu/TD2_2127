@@ -64,6 +64,7 @@ void StageEditor::Initialize() {
 
     if (s_cacheValid_) {                            // ①前回の配置をそのまま復元
         placedModels_ = s_cachePlaced_;
+        RebuildTilesFromPlaced_();
         RebuildInstancesFromPlaced_();
         OutputDebugStringA("[StageEditor] Restored from RAM cache.\n");
     }
@@ -307,12 +308,13 @@ void StageEditor::Update() {
    // ---------------------
    // 0)GameScene へ遷移
    // ---------------------
-    if (key.PressedKey(DIK_F2)) {
-        SaveCSV(kAutoSavePath);
+    if (key.PressedKey(DIK_F3)) {
+       //SaveCSV("Resources/stage/stage1.csv");
         s_cachePlaced_ = placedModels_;
         s_cacheValid_ = true;
+        RebuildTilesFromPlaced_();
         // ① エディタ内容をゲーム用CSVに吐く（ここは StageEditor のメンバーなので this でOK）
-        this->ExportForGameScene("Resources/stage/stage1.csv", 21, 500);
+        this->ExportForGameScene("Resources/stage/stage1.csv", 21, 128);
 
         // ② そのまま GameScene へ遷移（エディタを new し直さない！）
         Fngine* eng = p_fngine_; // あなたの環境で取得
@@ -401,10 +403,12 @@ void StageEditor::Update() {
     // ---------------------
     const bool ctrl = (key.PressKey(DIK_LCONTROL) || key.PressKey(DIK_RCONTROL));
     if (ctrl && key.PressedKey(DIK_S)) {
-        SaveCSV("stage.csv");
+        SaveCSV("Scene/Stageeditor/stage.csv");
+        //SaveCSV("resources/stage/stage1.csv");
     }
     if (ctrl && key.PressedKey(DIK_L)) {
-        LoadCSV("stage.csv");
+        LoadCSV("Scene/Stageeditor/stage.csv");
+        //LoadCSV("resources/stage/stage1.csv");
     }
 
     // ===== 手動スクロール（中ボタン or Space+左ドラッグ） =====
@@ -438,6 +442,18 @@ void StageEditor::Update() {
             gridOffset_.y = panStartOffset_.y + delta.y;
         }
     }
+
+    ImGui::Begin("Camera");
+    if (ImGui::Button("DebugMode")) {
+        CameraSystem::GetInstance()->SetActiveCamera("DebugCamera");
+    }
+    else if (ImGui::Button("GameMode")) {
+        CameraSystem::GetInstance()->SetActiveCamera("GameCamera");
+    }
+    else if (ImGui::Button("DebugmodeAdd")) {
+        CameraSystem::GetInstance()->GetActiveCamera()->AddControllers(CameraType::Debug);
+    }
+    ImGui::End();
 
 }
 
@@ -591,6 +607,11 @@ bool StageEditor::SaveCSV(const std::string& path) const {
     std::ofstream ofs(path);
     if (!ofs) return false;
 
+    if (!ofs) { OutputDebugStringA(("[StageEditor] SaveCSV open failed: " + path + "\n").c_str()); return false; }
+    OutputDebugStringA(("[StageEditor] SaveCSV: " + path + "  size=" +
+        std::to_string(gridCols_) + "x" + std::to_string(gridRows_) + "\n").c_str());
+    // ...
+
     // 1) サイズ
     ofs << gridCols_ << "," << gridRows_ << "\n";
 
@@ -615,8 +636,12 @@ bool StageEditor::SaveCSV(const std::string& path) const {
 // CSV: 読込
 //======================
 bool StageEditor::LoadCSV(const std::string& path) {
+    OutputDebugStringA(("[StageEditor] LoadCSV: " + path + "\n").c_str());
     std::ifstream ifs(path);
-    if (!ifs) return false;
+    if (!ifs) {
+        OutputDebugStringA(("[StageEditor] LoadCSV failed to open file: " + path + "\n").c_str());
+        return false;
+    }
 
     std::string line;
 
@@ -720,5 +745,18 @@ void StageEditor::RebuildInstancesFromPlaced_() {
         inst->worldTransform_.set_.Scale({ defaultScale_, defaultScale_, defaultScale_ });
 
         modelInstances_.push_back(std::move(inst));
+    }
+}
+
+// StageEditor.cpp
+void StageEditor::RebuildTilesFromPlaced_() {
+    // サイズが未設定の可能性があるなら安全側で確保
+    if (gridCols_ <= 0 || gridRows_ <= 0) { gridCols_ = kInitCols; gridRows_ = kInitRows; }
+    tiles_.assign(gridCols_ * gridRows_, 0);
+
+    for (const auto& pm : placedModels_) {
+        if (0 <= pm.cx && pm.cx < gridCols_ && 0 <= pm.cy && pm.cy < gridRows_) {
+            tiles_[pm.cy * gridCols_ + pm.cx] = pm.tileId; // ゲーム側が0/1なら 1 を入れてもOK
+        }
     }
 }
