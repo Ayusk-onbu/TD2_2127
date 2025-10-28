@@ -56,17 +56,30 @@ void StageEditor::Initialize() {
     }
     {
         auto m = std::make_unique<ModelObject>();
-        m->Initialize(d3d, "Plane.obj");
+        m->Initialize(d3d, "cube/cube.obj");
         m->SetFngine(eng_);
-        m->textureHandle_ = whiteTexId_;
+        m->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
         modelTemplates_.push_back(std::move(m));
     }
 
-    OutputDebugStringA("[StageEditor] Model templates loaded.\n");
+    if (s_cacheValid_) {                            // ①前回の配置をそのまま復元
+        placedModels_ = s_cachePlaced_;
+        RebuildInstancesFromPlaced_();
+        OutputDebugStringA("[StageEditor] Restored from RAM cache.\n");
+    }
+    else if (std::filesystem::exists(kAutoSavePath)) { // ②ファイルがあれば読み込み
+        LoadCSV(kAutoSavePath);
+        RebuildInstancesFromPlaced_();
+        OutputDebugStringA("[StageEditor] Autosave loaded.\n");
+    }
 }
 
 void StageEditor::Finalize() {
     // TextureManager が参照カウントなら特に不要
+    s_cachePlaced_ = placedModels_;  // メモリに保持（シーン切替で有効）
+    s_cacheValid_ = true;
+
+    SaveCSV(kAutoSavePath);
 }
 
 //======================
@@ -277,7 +290,6 @@ void StageEditor::EraseModelAtCell(int cx, int cy) {
     }
 }
 
-
 //======================
 // Update: 入力処理（配置/消去/保存/読込）
 //======================
@@ -296,8 +308,11 @@ void StageEditor::Update() {
    // 0)GameScene へ遷移
    // ---------------------
     if (key.PressedKey(DIK_F2)) {
+        SaveCSV(kAutoSavePath);
+        s_cachePlaced_ = placedModels_;
+        s_cacheValid_ = true;
         // ① エディタ内容をゲーム用CSVに吐く（ここは StageEditor のメンバーなので this でOK）
-        this->ExportForGameScene("Resources/stage/stage1.csv", 100, 20);
+        this->ExportForGameScene("Resources/stage/stage1.csv", 21, 500);
 
         // ② そのまま GameScene へ遷移（エディタを new し直さない！）
         Fngine* eng = p_fngine_; // あなたの環境で取得
@@ -686,4 +701,24 @@ bool StageEditor::ExportForGameScene(const char* outPath, int outCols, int outRo
 
     OutputDebugStringA("[StageEditor] Exported for GameScene.\n");
     return true;
+}
+
+void StageEditor::RebuildInstancesFromPlaced_() {
+    modelInstances_.clear();
+
+    auto& d3d = eng_->GetD3D12System(); // あなたの取得方法に合わせてください
+    for (auto& pm : placedModels_) {
+        if (pm.tileId < 1 || pm.tileId >(int)modelTemplates_.size()) continue;
+
+        auto inst = std::make_unique<ModelObject>();
+        inst->Initialize(d3d, modelTemplates_[pm.tileId - 1]->GetModelData());
+        inst->SetFngine(eng_);
+        inst->textureHandle_ = whiteTexId_;
+
+        // セル中心→ワールド変換はあなたの既存関数に合わせてください
+        inst->worldTransform_.set_.Translation(CellCenterToWorld(pm.cx, pm.cy));
+        inst->worldTransform_.set_.Scale({ defaultScale_, defaultScale_, defaultScale_ });
+
+        modelInstances_.push_back(std::move(inst));
+    }
 }

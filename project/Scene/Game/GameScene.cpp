@@ -32,7 +32,7 @@ void GameScene::Initialize() {
 	bulletModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
 	enemyModel_ = std::make_unique<ModelObject>();
 	enemyModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
-	enemyModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
+	enemyModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	arrowModel_ = std::make_unique<ModelObject>();
 	arrowModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
 	mapChipField_ = new MapChipField;
