@@ -68,8 +68,11 @@ void StageEditor::Initialize() {
         RebuildInstancesFromPlaced_();
         OutputDebugStringA("[StageEditor] Restored from RAM cache.\n");
     }
-    else if (std::filesystem::exists(kAutoSavePath)) { // ②ファイルがあれば読み込み
-        LoadCSV(kAutoSavePath);
+    else{ // ②ファイルがあれば読み込み
+        //LoadCSV(kAutoSavePath);
+        if (!LoadMarkersFromGameCsv("Resources/stage/stage1.csv")) {
+            OutputDebugStringA("[StageEditor] Fresh blank stage.\n");
+        }
         RebuildInstancesFromPlaced_();
         OutputDebugStringA("[StageEditor] Autosave loaded.\n");
     }
@@ -759,4 +762,70 @@ void StageEditor::RebuildTilesFromPlaced_() {
             tiles_[pm.cy * gridCols_ + pm.cx] = pm.tileId; // ゲーム側が0/1なら 1 を入れてもOK
         }
     }
+}
+
+// StageEditor.cpp
+bool StageEditor::LoadMarkersFromGameCsv(const std::string& path) {
+    std::ifstream ifs(path);
+    if (!ifs) {
+        OutputDebugStringA(("[StageEditor] LoadMarkersFromGameCsv: open failed: " + path + "\n").c_str());
+        return false;
+    }
+
+    // まず全行読み込み
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(ifs, line)) {
+        // 末尾の \r を削る（Windows対策）
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (!line.empty()) lines.push_back(line);
+    }
+    if (lines.empty()) {
+        OutputDebugStringA("[StageEditor] LoadMarkersFromGameCsv: file empty.\n");
+        return false;
+    }
+
+    // 列数＝1行目のカンマ数+1
+    int detectedCols = 0;
+    {
+        std::istringstream ss(lines[0]);
+        std::string tok;
+        while (std::getline(ss, tok, ',')) ++detectedCols;
+    }
+    const int detectedRows = static_cast<int>(lines.size());
+
+    // グリッドを合わせて初期化
+    gridCols_ = detectedCols;
+    gridRows_ = detectedRows;
+    tiles_.assign(gridCols_ * gridRows_, 0);
+    placedModels_.clear();
+
+    // 0/1 を敷き詰め、1の場所をマーカー化
+    for (int y = 0; y < gridRows_; ++y) {
+        std::istringstream ss(lines[y]);
+        std::string tok;
+        int x = 0;
+        while (x < gridCols_ && std::getline(ss, tok, ',')) {
+            int v = 0;
+            if (!tok.empty()) {
+                // 非数値でも0扱いに落とすための簡易保護
+                try { v = std::stoi(tok); }
+                catch (...) { v = 0; }
+            }
+            tiles_[y * gridCols_ + x] = v;
+            if (v != 0) {
+                // tileId は必要に応じて v を使う。迷うなら 1 で統一でもOK
+                placedModels_.push_back({ /*tileId*/ v, /*cx*/ x, /*cy*/ y, /*rotY*/ 0.0f });
+            }
+            ++x;
+        }
+        // 行に値が足りない場合は0でパディング（過剰は無視）
+        while (x < gridCols_) { tiles_[y * gridCols_ + x] = 0; ++x; }
+    }
+
+    RebuildInstancesFromPlaced_();
+    OutputDebugStringA(("[StageEditor] Loaded markers from game CSV: " + path +
+        " size=" + std::to_string(gridCols_) + "x" + std::to_string(gridRows_) +
+        " markers=" + std::to_string(placedModels_.size()) + "\n").c_str());
+    return true;
 }
