@@ -60,6 +60,30 @@ void GameScene::Initialize() {
 
 	player_->SetMapChipField(mapChipField_);
 
+	// どこかの初期化処理
+
+
+	// Particle　テンプレート
+	modelEmitter.SetTexture(TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg"));
+	modelEmitter.SetModelData(blockModel_->GetModelData());
+	modelEmitter.SetEmitter(playerPosition);
+	modelEmitter.SetDirection({ 0.0f, 1.0f, 0.0f }); // 真上
+	modelEmitter.SetSpeed(0.4f);
+	modelEmitter.SetParticleLife(140);
+	modelEmitter.SetSpawnCount(1);
+	modelEmitter.SetSpawnInterval(10);
+	modelEmitter.SetStartAlpha(1.0f);
+	modelEmitter.SetEndAlpha(0.0f);
+	modelEmitter.SetStartScale({ 1.0f,1.0f,1.0f });
+	modelEmitter.SetEndScale({ 0.1f,0.1f,0.1f });
+	modelEmitter.SetSpawnArea({ {-10.5f,0.0f,-10.5f}, {10.5f,0.0f,10.5f} });
+	modelEmitter.SetStartRotation({ 0.0f,0.0f,0.0f });
+	modelEmitter.SetEndRotation({ Deg2Rad(360.0f),Deg2Rad(360.0f),Deg2Rad(360.0f) });
+	modelEmitter.SetFngine(p_fngine_);
+
+	p_fngine_->GetMusic().GetBGM().SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/maou_bgm_fantasy02.mp3"));
+	p_fngine_->GetMusic().GetBGM().SetPlayAudioBuf();
+
 	// カメラコントローラ(なんか追加しないとか)
 	CameraSystem::GetInstance()->MakeCamera("DebugCamera", CameraType::Debug);
 	CameraSystem::GetInstance()->MakeCamera("GameCamera", CameraType::Game);
@@ -77,6 +101,7 @@ void GameScene::Update() {
 		GameUpdate();
 	}
 
+	modelEmitter.Update();
 #ifdef _DEBUG
 	auto& key = InputManager::GetKey();
 	if (key.PressedKey(DIK_F2)) {
@@ -199,6 +224,8 @@ void GameScene::TitleUpdate() {
 void GameScene::Draw() {
 	// 自キャラの描画
 	player_->Draw();
+	
+	modelEmitter.Draw();
 
 	// ブロックの描画
 	for (uint32_t i = 0; i < blocks_.size(); ++i) {
@@ -214,6 +241,8 @@ void GameScene::Draw() {
 	}
 	bulletManager_->Draw();
 	enemyManager_->Draw();
+
+	
 }
 
 void GameScene::GenerateBlocks() {

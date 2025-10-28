@@ -37,7 +37,9 @@ bool InputManager::GetJump() {
 	if(InputManager::GetKey().PressedKey(DIK_SPACE)){
 		isJump = true;
 	}
-	//if(InputManager::GetGamePad(0).IsPressed())
+	if (InputManager::GetGamePad(0).IsPressed(XINPUT_GAMEPAD_A)) {
+		isJump = true;
+	}
 	return isJump;
 }
 

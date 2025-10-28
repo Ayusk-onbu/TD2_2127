@@ -79,6 +79,7 @@ void Player::Update() {
 			//stompJumpAvailable_ = false;
 			stompJumpAvailable_ = true;
 			canAirShot_ = true;
+			se_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/ゲージ回復2.mp3"), false);
 			// ジャンプ状態へ移行
 			state_ = PlayerState::kJump;
 		}
@@ -116,7 +117,7 @@ void Player::Update() {
 		if (stompJumpAvailable_ && InputManager::GetJump()) {
 			// 敵をたおしてジャンプが可能な時に、ジャンプ入力があれば
 			StartApexSpin();
-
+			se_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/ゲージ回復2.mp3"),false);
 			// ジャンプができなくなる
 			stompJumpAvailable_ = false;
 			break;

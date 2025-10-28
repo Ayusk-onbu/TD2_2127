@@ -4,6 +4,7 @@
 #include "WorldTransform.h"
 #include "Player.h"
 #include "EnemyManager.h"
+#include "Particle.h"
 
 class GameScene 
 	:public Scene
@@ -44,6 +45,8 @@ private:
 
 	BulletManager* bulletManager_ = nullptr;
 	EnemyManager* enemyManager_ = nullptr;
+
+	ModelParticleEmitter modelEmitter;
 
 	//==== [  ] ====
 	// Title Scene についての変数
