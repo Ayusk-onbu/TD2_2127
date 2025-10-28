@@ -146,4 +146,8 @@ private:
 private:
     void RebuildInstancesFromPlaced_();
 
+    // StageEditor.h の public か private に追記
+    bool LoadMarkersFromGameCsv(const std::string& path);
+
+
 };
