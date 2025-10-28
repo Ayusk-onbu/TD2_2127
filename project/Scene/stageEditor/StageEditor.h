@@ -41,7 +41,7 @@ private:
     // ===== グリッド表示 =====
     int   gridCols_ = 32;             // 列数
     int   gridRows_ = 18;             // 行数
-    float cellSize_ = 40.0f;          // 1セルのピクセル
+    float cellSize_ = 32.0f;          // 1セルのピクセル
     float lineThickness_ = 1.0f;      // グリッド線の太さ(px)
     Vector4 gridColor_ = { 0.9f, 0.9f, 0.9f, 0.35f };
 
@@ -105,7 +105,7 @@ private:
     void ExpandBy(int addLeft, int addTop, int addRight, int addBottom);
 
     // ===== 追加: 初期グリッドサイズ（好きな値に変更OK） =====
-    static constexpr int kInitCols = 128;   // 例: 128×128 で開始
+    static constexpr int kInitCols = 21;   // 例: 128×128 で開始
     static constexpr int kInitRows = 128;
 
     // ===== 追加: リサイズ時のアンカー（基準） =====
@@ -125,5 +125,21 @@ private:
 // GameScene(MapChipField)が期待する固定サイズのCSVを吐く。
 // デフォルトは 横100 x 縦20（MapChipField の定数に合わせる）
     bool ExportForGameScene(const char* outPath, int outCols = 100, int outRows = 20) const;
+
+    // 上方向拡張のためのオフセット（追加）
+    int yOffsetTiles_ = 0;  // 「何行ぶん上を増やしたか」。描画/入力の補正に使う
+
+    // --- 追記: オートセーブ先 ---
+private:
+    static constexpr const char* kAutoSavePath = "Resources/stage/_autosave_stage.csv";
+
+    // --- 追記: プロセス内での一時キャッシュ（シーン切替でも保持） ---
+private:
+    static inline std::vector<PlacedModel> s_cachePlaced_;
+    static inline bool s_cacheValid_ = false;
+
+    // --- 追記: 復元用ヘルパ ---
+private:
+    void RebuildInstancesFromPlaced_();
 
 };
