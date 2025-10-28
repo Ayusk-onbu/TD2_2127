@@ -4,6 +4,7 @@
 #include "ImGuiManager.h"
 #include "InputManager.h"
 #include "CameraSystem.h"
+#include "Easing.h"
 constexpr float kPi = 3.14159265f;
 
 void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vector3& position, BulletManager* bulletManager,Fngine*fngine) {
@@ -34,12 +35,31 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	gunArrowObj_.SetFngine(fngine);
 	gunArrowObj_.textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	gunArrowObj_.SetLightEnable(false);
+
+	savePoint_ = position;
 }
 
 void Player::Update() {
 	CameraSystem::GetInstance()->GetActiveCamera()->targetPos_ = obj_->worldTransform_.transform_.translation_;
 	if (isDead_) {
 		playingState_ = PlayingState::kGameOver;
+
+		aliveTimer_ += 1.0f / 60.0f;
+
+		// ここから死んだときの演出↓↓↓
+
+		Easing(obj_->worldTransform_.get_.Translation(), obj_->worldTransform_.get_.Translation(), savePoint_,aliveTimer_, kAliveTime_, EASINGTYPE::None);
+
+		// ここまで死んだときの演出↑↑↑
+
+		if (aliveTimer_ >= kAliveTime_) {
+			isDead_ = false;
+			playingState_ = PlayingState::kPlaying;
+			state_ = PlayerState::kGround;
+			aliveTimer_ = 0.0f;
+			velocity_.x = 0.0f;
+		}
+
 		return;
 	}
 
@@ -139,7 +159,7 @@ void Player::Update() {
 
 			// 回転処理
 			float progress = 1.0f - (static_cast<float>(apexSpinTimer_) / kApexSpinDuration);
-			obj_->worldTransform_.get_.Rotation().z = -progress * 4.0f * kPi;
+			obj_->worldTransform_.get_.Rotation().z = -progress * 2.5f * kPi;
 		}
 		if (apexSpinTimer_ <= 0) {
 			//　回転の時間が終了したら

@@ -125,7 +125,7 @@ void GameScene::GameUpdate() {
 
 				if (player_->GetVelocity().y < 0 && playerAABB.min.y > enemyAABB.min.y) {
 					// 踏みつけ成功
-					enemy->OnCollision();    // 敵を倒す
+					//enemy->OnCollision();    // 敵を倒す 死ぬと色々めんどい
 					player_->OnEnemyStomp(); // プレイヤーに踏んだことを通知
 				}
 				else {
