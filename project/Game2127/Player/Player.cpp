@@ -4,6 +4,7 @@
 #include "ImGuiManager.h"
 #include "InputManager.h"
 #include "CameraSystem.h"
+#include "Easing.h"
 constexpr float kPi = 3.14159265f;
 
 void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vector3& position, BulletManager* bulletManager,Fngine*fngine) {
@@ -34,12 +35,35 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	gunArrowObj_.SetFngine(fngine);
 	gunArrowObj_.textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	gunArrowObj_.SetLightEnable(false);
+
+	isGunSprite_.Initialize(fngine->GetD3D12System(),100.0f,100.0f);
+	isGunSpriteWorldTransform_.Initialize();
+	isGunSpriteWorldTransform_.set_.Rotation({0.0f,Deg2Rad(0),0.0f});
+
+	savePoint_ = position;
 }
 
 void Player::Update() {
 	CameraSystem::GetInstance()->GetActiveCamera()->targetPos_ = obj_->worldTransform_.transform_.translation_;
 	if (isDead_) {
 		playingState_ = PlayingState::kGameOver;
+
+		aliveTimer_ += 1.0f / 60.0f;
+
+		// ここから死んだときの演出↓↓↓
+
+		Easing(obj_->worldTransform_.get_.Translation(), obj_->worldTransform_.get_.Translation(), savePoint_,aliveTimer_, kAliveTime_, EASINGTYPE::None);
+
+		// ここまで死んだときの演出↑↑↑
+
+		if (aliveTimer_ >= kAliveTime_) {
+			isDead_ = false;
+			playingState_ = PlayingState::kPlaying;
+			state_ = PlayerState::kGround;
+			aliveTimer_ = 0.0f;
+			velocity_.x = 0.0f;
+		}
+
 		return;
 	}
 
@@ -139,7 +163,7 @@ void Player::Update() {
 
 			// 回転処理
 			float progress = 1.0f - (static_cast<float>(apexSpinTimer_) / kApexSpinDuration);
-			obj_->worldTransform_.get_.Rotation().z = -progress * 4.0f * kPi;
+			obj_->worldTransform_.get_.Rotation().z = -progress * 2.5f * kPi;
 		}
 		if (apexSpinTimer_ <= 0) {
 			//　回転の時間が終了したら
@@ -225,9 +249,26 @@ void Player::Update() {
 	obj_->LocalToWorld();
 
 	ImGuiManager::GetInstance()->DrawDrag("Player : Pos", obj_->worldTransform_.get_.Translation());
+	if (canAirShot_) {
+		ImGuiManager::GetInstance()->Text("Can Air Shot");
+	}
 }
 
 void Player::Draw() {
+
+	if (canAirShot_) {
+		//isGunSpriteWorldTransform_.set_.Translation(obj_->worldTransform_.get_.Translation());
+		//isGunSpriteWorldTransform_.get_.Translation().x += 1.0f;
+		//isGunSpriteWorldTransform_.get_.Translation().y += 2.0f;
+		isGunSpriteWorldTransform_.LocalToWorld();
+		isGunSprite_.SetWVPData(
+			CameraSystem::GetInstance()->GetActiveCamera()->DrawUI(isGunSpriteWorldTransform_.mat_),
+			isGunSpriteWorldTransform_.mat_,
+			Matrix4x4::Make::Identity()
+		);
+		isGunSprite_.Draw(fngine_->GetCommand(), fngine_->GetPSO(), fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(1));
+	}
+
 	obj_->LocalToWorld();
 	obj_->SetWVPData(CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(obj_->worldTransform_.mat_));
 	obj_->Draw();

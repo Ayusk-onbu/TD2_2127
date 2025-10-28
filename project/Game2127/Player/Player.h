@@ -7,6 +7,7 @@
 #include "ModelObject.h"
 #include "AABB.h"
 #include "LineObject.h"
+#include "SpriteObject.h"
 
 
 class MapChipField;
@@ -72,7 +73,7 @@ private:
 	static inline const float kLimitFallSpeed = 0.5f;
 	static inline const float kJumpVelocity = 0.6f;
 	static inline const float kAirShotRecoil = 0.7f;
-	static inline const int kApexSpinDuration = 60;
+	static inline const int kApexSpinDuration = 120;
 
 	static inline const float kTimeTurn = 0.3f;
 	static inline const float kBlank = 0.02f;
@@ -98,6 +99,13 @@ private:
 
 	// Hamadaが追加した
 	ModelObject gunArrowObj_;
+
+	Vector3 savePoint_ = {};
+	float aliveTimer_ = 0.0f;// 復活時間
+	float kAliveTime_ = 2.0f;// 復活するための時間
+
+	SpriteObject isGunSprite_;
+	WorldTransform isGunSpriteWorldTransform_;
 
 	Fngine* fngine_ = nullptr;
 

@@ -42,10 +42,11 @@ void Bullet::Update() {
 		    (myAABB.min.y <= enemyAABB.max.y && myAABB.max.y >= enemyAABB.min.y) && // Y軸
 		    (myAABB.min.z <= enemyAABB.max.z && myAABB.max.z >= enemyAABB.min.z)) { // Z軸
 
-			enemy->OnCollision();
+			//敵を殺すのだるい
+			//enemy->OnCollision();
 			isDead_ = true;
 			if (player_->IsInAir()) {
-				player_->ResetAirShot();
+				player_->OnEnemyStomp();
 			}
 			break;
 		}
