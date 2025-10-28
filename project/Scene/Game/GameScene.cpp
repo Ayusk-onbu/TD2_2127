@@ -54,7 +54,7 @@ void GameScene::Initialize() {
 	// 自キャラ生成
 	player_ = std::make_unique<Player>();
 	// 座標をマップチップ番号で指定
-	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(4, 18);
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(4, 98);
 	// 自キャラの初期化
 	player_->Initialize(playerModel_.get(), arrowModel_.get(), playerPosition, bulletManager_, p_fngine_);
 

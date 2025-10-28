@@ -53,6 +53,7 @@ void Player::Update() {
 		// ここから死んだときの演出↓↓↓
 
 		Easing(obj_->worldTransform_.get_.Translation(), obj_->worldTransform_.get_.Translation(), savePoint_,aliveTimer_, kAliveTime_, EASINGTYPE::None);
+		Easing(obj_->worldTransform_.get_.Scale(), { 0.0f,0.0f,0.0f }, {1.0f,1.0f,1.0f}, aliveTimer_, kAliveTime_, EASINGTYPE::None);
 
 		// ここまで死んだときの演出↑↑↑
 
@@ -346,7 +347,7 @@ void Player::OnCeilingCollision(const CollisionMapInfo& info) {
 	if (info.ceilingCollision) {
 		velocity_.y = 0.0f;
 		if (state_ == PlayerState::kJump) {
-			StartApexSpin();
+			//StartApexSpin();
 		}
 	}
 }
