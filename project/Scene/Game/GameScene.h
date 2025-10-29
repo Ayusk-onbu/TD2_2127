@@ -89,6 +89,7 @@ private:
 
 	std::array<RectF, 3> goalWorldRects_{};
 	int goalCount_ = 0;
+	Audio GameSceneSe_;
 };
 
 
