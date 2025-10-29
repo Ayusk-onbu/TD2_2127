@@ -40,12 +40,14 @@ void GameScene::Initialize() {
 	int stageIndex = 0; // 今回はステージ1固定
 	std::string filename = "Resources/stage/stage" + std::to_string(stageIndex + 1) + ".csv";
 	mapChipField_->LoadMapChipCsv(filename.c_str());
-	GenerateBlocks();
+	
 
 	enemyManager_ = new EnemyManager();
 	enemyManager_->Initialize(enemyModel_.get());
 	enemyManager_->SetFngine(p_fngine_);
-	enemyManager_->SpawnEnemy({ 30.0f, 10.0f, 0.0f });
+	
+
+	GenerateBlocks();
 
 	bulletManager_ = new BulletManager();
 	bulletManager_->Initialize(bulletModel_.get(), enemyManager_, mapChipField_);
@@ -295,6 +297,23 @@ void GameScene::GenerateBlocks() {
 		for (uint32_t j = 0; j < numBlockHorizontal; j++) {
 			// MapChipField からマップチップのタイプを取得
 			MapChipField::MapChipType mapChipType = mapChipField_->GetMapChipTypeByIndex(j, i);
+
+			if (mapChipType == MapChipField::MapChipType::kTrap) {
+				// === 敵スポーン ===
+				Vector3 pos;
+				pos.x = kBlockWidth * j;
+				pos.y = kBlockHeight * (numBlockVirtical - 1 - i);
+				pos.z = 0.0f;
+				
+				enemyManager_->SpawnEnemy(pos);
+
+				// ブロックは置かない（当たり判定衝突を避ける）
+				blocks_[i][j] = nullptr;
+
+				//// 以降の地形系は空白として扱えるよう 0 に正規化（任意）
+				//mapChipField_->SetTileValueByIndex(j, i, 0); // ←※あれば
+				continue;
+			}
 
 			if (mapChipType != MapChipField::MapChipType::kBlank) {
 				blocks_[i][j] = new ModelObject();
