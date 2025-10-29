@@ -78,6 +78,13 @@ private:
 	// ゲームスタートフラグ
 	bool isGameStart_ = false;
 
+	// チュートリアル
+	SpriteObject TRSprite_;
+	WorldTransform TRWorld_;
+	WorldTransform uvTR_;
+	int TRTextureHandle_ = -1;
+	float TRTimer_ = 0.0f;
+
 	std::array<RectF, 3> goalWorldRects_{};
 	int goalCount_ = 0;
 };

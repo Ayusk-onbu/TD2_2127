@@ -11,6 +11,7 @@ void SimpleParticleEmitter::Update() {
         for (int i = 0; i < spawnCountPerFrame; ++i) {
             Particle p;
             p.sprite = std::make_unique<SpriteObject>();
+			p.sprite->SetAbleLight(false);
             p.position = emitterPos;
             p.velocity = direction * speed;
             p.life = particleLife;
@@ -58,7 +59,8 @@ void ModelParticleEmitter::Update() {
     static std::mt19937 gen(static_cast<unsigned int>(
         std::chrono::high_resolution_clock::now().time_since_epoch().count()));
     // パーティクル生成
-    if (frameCounter % spawnInterval == 0) {
+    
+    if (spawnInterval != 0 && (frameCounter % spawnInterval == 0)) {
         for (int i = 0; i < spawnCountPerFrame; ++i) {
             Particle p;
             p.model = std::make_unique<ModelObject>();
@@ -87,6 +89,7 @@ void ModelParticleEmitter::Update() {
             p.velocity = direction * speed;
 
             p.model->Initialize(fngine_->GetD3D12System(), modelData);
+			//p.model->SetLightEnable(false);
             p.model->SetFngine(fngine_);
             p.model->worldTransform_.set_.Translation(p.position);
             p.model->worldTransform_.set_.Scale(startScale);
@@ -115,9 +118,9 @@ void ModelParticleEmitter::Update() {
         std::remove_if(particles.begin(), particles.end(),
             [](const Particle& p) { return p.life <= 0; }),
         particles.end());
-    ImGui::Begin("Particle Model Emitter");
+    /*ImGui::Begin("Particle Model Emitter");
     ImGui::Text("Particle Count: %d", static_cast<int>(particles.size()));
-    ImGui::End();
+    ImGui::End();*/
 }
 
 void ModelParticleEmitter::Draw() {

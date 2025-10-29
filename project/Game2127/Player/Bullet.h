@@ -10,6 +10,13 @@ class Player;
 
 class Bullet {
 public:
+	~Bullet() {
+		if (model_) {
+			delete model_;
+			model_ = nullptr;
+		}
+	}
+public:
 	// 初期化
 	void Initialize(ModelObject* model, const Vector3& position, const Vector3& velocity, EnemyManager* enemyManager, MapChipField* mapChipField, Player* player);
 	// 更新

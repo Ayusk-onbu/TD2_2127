@@ -103,6 +103,15 @@ void GameScene::Initialize() {
 	modelEmitter.SetEndRotation({ Deg2Rad(360.0f),Deg2Rad(360.0f),Deg2Rad(360.0f) });
 	modelEmitter.SetFngine(p_fngine_);
 
+	TRSprite_.Initialize(p_fngine_->GetD3D12System(), 4.0f, 8.0f);
+	TRWorld_.Initialize();
+	TRWorld_.set_.Rotation({ Deg2Rad(0),Deg2Rad(180) ,Deg2Rad(180) });
+	TRWorld_.set_.Scale({ 1.5f,1.5f,1.5f });
+	uvTR_.Initialize();
+	uvTR_.set_.Scale({ 0.2f, 1.0f, 1.0f });
+	TRWorld_.set_.Translation(mapChipField_->GetMapChipPositionByIndex(15, 120));
+	TRTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/TutorialSprite.png");
+
 	p_fngine_->GetMusic().GetBGM().SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/maou_bgm_fantasy02.mp3"));
 	p_fngine_->GetMusic().GetBGM().SetPlayAudioBuf();
 
@@ -121,11 +130,46 @@ void GameScene::Update() {
 	TitleUpdate();
 	if (isGameStart_ == true) {
 		GameUpdate();
+
+		TRTimer_ += 1.0f / 7.5f;
+		if (TRTimer_ <= 3.0f) {
+			// 最初がOnGround
+			if (player_->IsOnG()) {
+				uvTR_.set_.Translation({ 0.0f,0.0f,0.0f });
+			}
+			// 次がJump
+			else if (player_->IsCanShot()) {
+				uvTR_.set_.Translation({ 0.4f,0.0f,0.0f });
+			}
+		}
+		else if (TRTimer_ <= 6.0f) {
+			// 最初がOnGround
+			if (player_->IsOnG()) {
+				uvTR_.set_.Translation({ 0.2f,0.0f,0.0f });
+			}
+			// 次がJump
+			else if (player_->IsCanShot()) {
+				uvTR_.set_.Translation({ 0.6f,0.0f,0.0f });
+			}
+		}
+		else if (TRTimer_ <= 9.0f) {
+			// 最初がOnGround
+			if (player_->IsOnG()) {
+				uvTR_.set_.Translation({ 0.4f,0.0f,0.0f });
+			}
+			// 次がJump
+			else if (player_->IsCanShot()) {
+				uvTR_.set_.Translation({ 0.8f,0.0f,0.0f });
+			}
+		}
+		else {
+			TRTimer_ = 0.0f;
+		}
 	}
+
 	Vector3 pos = CameraSystem::GetInstance()->GetActiveCamera()->GetTranslation();
 	pos.y -= 12.0f;
 	pos.z = playerModel_->worldTransform_.get_.Translation().z + 10.0f;
-
 	modelEmitter.SetEmitter(pos);
 	modelEmitter.Update();
 #ifdef _DEBUG
@@ -294,6 +338,7 @@ void GameScene::TitleUpdate() {
 
 void GameScene::Draw() {
 
+
 	// ブロックの描画
 	for (uint32_t i = 0; i < blocks_.size(); ++i) {
 		for (uint32_t j = 0; j < blocks_[i].size(); ++j) {
@@ -330,6 +375,19 @@ void GameScene::Draw() {
 		);
 		pressSpaceSprite_.Draw(p_fngine_->GetCommand(), p_fngine_->GetPSO(), p_fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(pressSpaceTextureHandle_));
 	}
+
+	TRWorld_.LocalToWorld();
+	uvTR_.LocalToWorld();
+	TRSprite_.SetWVPData(
+		CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(TRWorld_.mat_),
+		TRWorld_.mat_,
+		uvTR_.mat_
+	);
+	TRSprite_.Draw(p_fngine_->GetCommand(), p_fngine_->GetPSO(), p_fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(TRTextureHandle_));
+
+
+	// 自キャラの描画
+	player_->Draw();
 	p_fngine_->GetPSO().SetBlendState(BLENDMODE::Additive);
 	modelEmitter.Draw();
 	p_fngine_->GetPSO().SetBlendState(BLENDMODE::AlphaBlend);

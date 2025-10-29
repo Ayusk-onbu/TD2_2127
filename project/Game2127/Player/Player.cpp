@@ -36,6 +36,26 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	gunArrowObj_.textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	gunArrowObj_.SetLightEnable(false);
 
+	ModelObject onGModel;
+	onGModel.Initialize(fngine->GetD3D12System(), "cube.obj", "resources/cube");
+	onGroundEmitter_.SetTexture(TextureManager::GetInstance()->LoadTexture("resources/GridLine.png"));
+	onGroundEmitter_.SetModelData(onGModel.GetModelData());
+	onGroundEmitter_.SetEmitter(obj_->worldTransform_.get_.Translation());
+	onGroundEmitter_.SetDirection({ 0.0f, 1.0f, 0.0f }); // 真上
+	onGroundEmitter_.SetSpeed(0.028f);
+	onGroundEmitter_.SetParticleLife(60);
+	onGroundEmitter_.SetSpawnCount(3);
+	onGroundEmitter_.SetSpawnInterval(5);
+	onGroundEmitter_.SetColor({ 0.0f,0.0f,0.0f });
+	onGroundEmitter_.SetStartAlpha(1.0f);
+	onGroundEmitter_.SetEndAlpha(1.0f);
+	onGroundEmitter_.SetStartScale({ 0.25f,0.25f,0.25f });
+	onGroundEmitter_.SetEndScale({ -0.0f,-0.0f,-0.0f });
+	onGroundEmitter_.SetSpawnArea({ {-0.5f,0.0f,-0.5f}, {0.5f,0.0f,0.5f} });
+	onGroundEmitter_.SetStartRotation({ 0.0f,0.0f,0.0f });
+	onGroundEmitter_.SetEndRotation({ Deg2Rad(360.0f),Deg2Rad(360.0f),Deg2Rad(360.0f) });
+	onGroundEmitter_.SetFngine(fngine);
+
 	isGunSprite_.Initialize(fngine->GetD3D12System(),100.0f,100.0f);
 	isGunSpriteWorldTransform_.Initialize();
 	isGunSpriteWorldTransform_.set_.Rotation({0.0f,Deg2Rad(0),0.0f});
@@ -67,6 +87,30 @@ void Player::Update() {
 
 		return;
 	}
+
+	if (savePoint_.y < 93.9f) {
+		if (obj_->worldTransform_.get_.Translation().y >= 93.9f) {
+			savePoint_ = { 1.9f,93.9f,0.0f };
+		}
+	}
+
+	else if (savePoint_.y < 169.9f) {
+		if (obj_->worldTransform_.get_.Translation().y >= 169.9f) {
+			savePoint_ = { 25.0f,169.9f,0.0f };
+		}
+	}
+
+	else if (savePoint_.y < 205.9f) {
+		if (obj_->worldTransform_.get_.Translation().y >= 205.9f) {
+			savePoint_ = { 12.0f,205.9f,0.0f };
+		}
+	}
+
+	
+
+	
+
+	
 
 	switch (state_) {
 	case PlayerState::kGround:
@@ -249,6 +293,25 @@ void Player::Update() {
 
 	obj_->LocalToWorld();
 
+	if (state_ == PlayerState::kGround) {
+		// 地面にいるときに
+		if (velocity_.x != 0.0f) {
+			onGroundEmitter_.SetSpawnInterval(5);
+			// 移動しているなら
+			float directionX;
+			directionX = velocity_.x > 0 ? 1.0f : -1.0f;
+			onGroundEmitter_.SetDirection({-directionX,0.0f,0.0f});
+			Vector3 pos = obj_->worldTransform_.get_.Translation();
+			pos.y -= kHeight / 2.0f;
+			onGroundEmitter_.SetEmitter(pos);
+			
+		}
+	}
+	else {
+		onGroundEmitter_.SetSpawnInterval(0);
+	}
+	onGroundEmitter_.Update();
+
 	ImGuiManager::GetInstance()->DrawDrag("Player : Pos", obj_->worldTransform_.get_.Translation());
 	if (canAirShot_) {
 		ImGuiManager::GetInstance()->Text("Can Air Shot");
@@ -282,6 +345,7 @@ void Player::Draw() {
 		gunArrowObj_.SetWVPData(CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(gunArrowObj_.worldTransform_.mat_));
 		gunArrowObj_.Draw();
 	}
+	onGroundEmitter_.Draw();
 }
 
 void Player::OnEnemyStomp() {
