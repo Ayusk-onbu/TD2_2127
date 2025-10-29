@@ -211,6 +211,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Game2127\Enemy\Enemy.cpp" />
     <ClCompile Include="Game2127\Enemy\EnemyManager.cpp" />
     <ClCompile Include="Game2127\MapChipField.cpp" />
+    <ClCompile Include="Game2127\Particle.cpp" />
     <ClCompile Include="Game2127\Player\Bullet.cpp" />
     <ClCompile Include="Game2127\Player\BulletManager.cpp" />
     <ClCompile Include="Game2127\Player\Player.cpp" />
@@ -312,6 +313,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Game2127\Game2127.h" />
     <ClInclude Include="Game2127\include\title.h" />
     <ClInclude Include="Game2127\MapChipField.h" />
+    <ClInclude Include="Game2127\Particle.h" />
     <ClInclude Include="Game2127\Player\Bullet.h" />
     <ClInclude Include="Game2127\Player\BulletManager.h" />
     <ClInclude Include="Game2127\Player\Player.h" />

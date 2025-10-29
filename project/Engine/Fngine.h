@@ -49,6 +49,7 @@ public:
 	PSO& GetPSO() { return pso_; }
 	PSO& GetLinePSO() { return linePso_; }
 	DirectionLight& GetLight() { return light_; }
+	Music& GetMusic() { return music_; }
 private:
 
 	int32_t kClienWidth_ = 1280;

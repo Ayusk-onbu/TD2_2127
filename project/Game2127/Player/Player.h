@@ -102,11 +102,11 @@ private:
 
 	Vector3 savePoint_ = {};
 	float aliveTimer_ = 0.0f;// 復活時間
-	float kAliveTime_ = 2.0f;// 復活するための時間
+	float kAliveTime_ = 1.05f;// 復活するための時間
 
 	SpriteObject isGunSprite_;
 	WorldTransform isGunSpriteWorldTransform_;
 
 	Fngine* fngine_ = nullptr;
-
+	Audio se_;
 };
