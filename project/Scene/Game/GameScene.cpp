@@ -32,13 +32,13 @@ void GameScene::Initialize() {
 	playerModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
 	blockModel_ = std::make_unique<ModelObject>();
 	blockModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
-	blockModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
+	blockModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/stageBlock.jpg");
 	bulletModel_ = std::make_unique<ModelObject>();
 	bulletModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
-	bulletModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg");
+	bulletModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	enemyModel_ = std::make_unique<ModelObject>();
-	enemyModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
-	enemyModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
+	enemyModel_->Initialize(p_fngine_->GetD3D12System(), "enemy.obj", "resources/enemy");
+	enemyModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/enemy/enemy.png");
 	arrowModel_ = std::make_unique<ModelObject>();
 	arrowModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
 	goalModel_ = std::make_unique<ModelObject>();
@@ -314,6 +314,7 @@ void GameScene::TitleUpdate() {
 				// 最初にタイトルのフラグを立てる(遷移が始まる)
 				isTitleFirst_ = true;
 				titleToGameFadeTimer_ = 0.0f;
+				GameSceneSe_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/start.mp3"), false);
 			}
 			ImGuiManager::GetInstance()->DrawDrag("titleTimer", titleTimer_);
 			ImGuiManager::GetInstance()->DrawDrag("titleLoopTimer", titleLoopTime_);
@@ -335,6 +336,7 @@ void GameScene::TitleUpdate() {
 
 			if (titleToGameFadeTimer_ >= titleToGameFadeDuration_) {
 				isGameStart_ = true;
+				
 			}
 			ImGuiManager::GetInstance()->DrawDrag("titleToFadeTimer", titleToGameFadeTimer_);
 			ImGuiManager::GetInstance()->DrawDrag("titleToGameFadeDuration", titleToGameFadeDuration_);
@@ -437,6 +439,7 @@ void GameScene::GenerateBlocks() {
 				blocks_[i][j] = new ModelObject();
 				blocks_[i][j]->Initialize(p_fngine_->GetD3D12System(), goalModel_->GetModelData());
 				blocks_[i][j]->SetFngine(p_fngine_);
+				blocks_[i][j]->SetColor({ 1.0f, 1.0f, 0.0f, 0.5f }); // 半透明にしてみる
 				blocks_[i][j]->textureHandle_ = goalModel_->textureHandle_;
 				blocks_[i][j]->worldTransform_.get_.Translation().x = gx0;
 				blocks_[i][j]->worldTransform_.get_.Translation().y = gy0;

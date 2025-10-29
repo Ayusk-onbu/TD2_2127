@@ -13,7 +13,7 @@ void ClearScene::Initialize() {
     clearSprite_ = std::make_unique<SpriteObject>();
     clearSprite_->Initialize(p_fngine_->GetD3D12System(), 1280.0f, 720.0f);   // D3D12System を渡す流儀なら
     // テクスチャ紐付け（直接メンバ／SetTexture のどちらか）
-    clearTexTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/uvChecker.png");                // これが通る型ならこれでOK
+    clearTexTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/clear.png");                // これが通る型ならこれでOK
 
 
 	pressSpaceWorld_.Initialize();

@@ -47,6 +47,7 @@ void Bullet::Update() {
 			isDead_ = true;
 			if (player_->IsInAir()) {
 				player_->OnEnemyStomp();
+				bulletSE_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/reCharge.mp3"), false);
 			}
 			break;
 		}
