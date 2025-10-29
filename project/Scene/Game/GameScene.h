@@ -85,6 +85,8 @@ private:
 	int TRTextureHandle_ = -1;
 	float TRTimer_ = 0.0f;
 
+	ModelObject backgroundModel_;
+
 	std::array<RectF, 3> goalWorldRects_{};
 	int goalCount_ = 0;
 	Audio GameSceneSe_;
