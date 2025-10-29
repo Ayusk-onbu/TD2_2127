@@ -15,7 +15,7 @@ void ClearScene::Update() {
     auto& key = InputManager::GetKey();
     // Enter / Space / 左クリック で GameScene にのみ戻る
     if (!requested_) {
-        if (key.PressedKey(DIK_RETURN)) {
+        if (key.PressedKey(DIK_SPACE)) {
             requested_ = true;
             Transition::FadeToWith(
                 Transition::TransitionType::Fade,      // 好みで FadeSlideUp 等に変更可
