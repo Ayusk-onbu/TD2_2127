@@ -39,6 +39,7 @@ void BulletManager::SpawnBullet(const Vector3& position, const Vector3& velocity
 	bulletModel->Initialize(fngine_->GetD3D12System(), model_->GetModelData());
 	bulletModel->SetFngine(fngine_);
 	bulletModel->textureHandle_ = model_->textureHandle_;
+	bulletModel->SetColor({ 1.0f,0.0f,0.0f,1.0f });
 	newBullet->Initialize(bulletModel,position, velocity, enemyManager_, mapChipField_, player);
 
  	bullets_.push_back(newBullet);

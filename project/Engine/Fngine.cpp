@@ -35,7 +35,7 @@ void Fngine::Initialize() {
 	SetUnhandledExceptionFilter(ErrorGuardian::ExportDump);
 	Log::Initialize();
 
-	window_.Initialize(L"CG2ClassName", L"CG2");
+	window_.Initialize(L"CG2ClassName", L"2127_跳弾");
 	errorGuardian_.SetDebugInterface();
 	dxgi_.RecruitEngineer();
 	omnisTechOracle_.Oracle(dxgi_);

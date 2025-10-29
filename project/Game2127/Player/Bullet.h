@@ -44,4 +44,5 @@ private:
 	static inline const Vector3 kBulletSize = {0.4f, 0.4f, 0.2f};
 
 	EnemyManager* enemyManager_ = nullptr;
+	Audio bulletSE_;
 };
