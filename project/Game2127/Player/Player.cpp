@@ -39,7 +39,7 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 	isGunSprite_.Initialize(fngine->GetD3D12System(),100.0f,100.0f);
 	isGunSpriteWorldTransform_.Initialize();
 	isGunSpriteWorldTransform_.set_.Rotation({0.0f,Deg2Rad(0),0.0f});
-
+	isGunTexTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/bulletUI.png");
 	savePoint_ = position;
 }
 
@@ -267,7 +267,7 @@ void Player::Draw() {
 			isGunSpriteWorldTransform_.mat_,
 			Matrix4x4::Make::Identity()
 		);
-		isGunSprite_.Draw(fngine_->GetCommand(), fngine_->GetPSO(), fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(1));
+		isGunSprite_.Draw(fngine_->GetCommand(), fngine_->GetPSO(), fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(isGunTexTextureHandle_));
 	}
 
 	obj_->LocalToWorld();

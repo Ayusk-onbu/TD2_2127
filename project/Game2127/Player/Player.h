@@ -105,6 +105,7 @@ private:
 	float kAliveTime_ = 1.05f;// 復活するための時間
 
 	SpriteObject isGunSprite_;
+	int isGunTexTextureHandle_ = -1;
 	WorldTransform isGunSpriteWorldTransform_;
 
 	Fngine* fngine_ = nullptr;
