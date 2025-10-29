@@ -337,7 +337,7 @@ void GameScene::TitleUpdate() {
 }
 
 void GameScene::Draw() {
-	
+
 
 	// ブロックの描画
 	for (uint32_t i = 0; i < blocks_.size(); ++i) {
@@ -351,6 +351,10 @@ void GameScene::Draw() {
 			worldTransformBlock->Draw();
 		}
 	}
+
+	// 自キャラの描画
+	player_->Draw();
+
 	bulletManager_->Draw();
 	enemyManager_->Draw();
 
