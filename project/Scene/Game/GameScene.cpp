@@ -5,7 +5,7 @@
 #include "stageeditor/Stageeditor.h"
 #include "InputManager.h"
 #include "Easing.h"
-
+#include"Clear/ClearScene.h"
 GameScene::~GameScene() {
 	for (auto& row : blocks_) {
 		for (auto* worldTransformBlock : row) {
@@ -17,6 +17,12 @@ GameScene::~GameScene() {
 	delete bulletManager_;
 	delete enemyManager_;
 	Log::ViewFile("Path GameScene ~");
+}
+
+//矩形の当たり判定
+static inline bool Intersects(const AABB& a, const RectF& r) {
+	return (a.min.x <= r.x1 && a.max.x >= r.x0) &&
+		(a.min.y <= r.y1 && a.max.y >= r.y0);
 }
 
 void GameScene::Initialize() {
@@ -35,6 +41,9 @@ void GameScene::Initialize() {
 	enemyModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	arrowModel_ = std::make_unique<ModelObject>();
 	arrowModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
+	goalModel_ = std::make_unique<ModelObject>();
+	goalModel_->Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
+	goalModel_->textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/GridLine.png");
 	mapChipField_ = new MapChipField;
 	// ステージ番号に応じたCSVファイルを読み込む
 	int stageIndex = 0; // 今回はステージ1固定
@@ -56,7 +65,7 @@ void GameScene::Initialize() {
 	// 自キャラ生成
 	player_ = std::make_unique<Player>();
 	// 座標をマップチップ番号で指定
-	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(4, 126);
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(2, 2);
 	// 自キャラの初期化
 	player_->Initialize(playerModel_.get(), arrowModel_.get(), playerPosition, bulletManager_, p_fngine_);
 
@@ -196,6 +205,23 @@ void GameScene::GameUpdate() {
 		}
 	}
 
+	// ① y座標でゴール判定を無効化（ここだけで制御）
+	if (playerModel_->worldTransform_.get_.Translation().y <= 248.0f) {
+		return; // まだ判定しない
+	}
+
+	// ② ゴール3つとの交差だけを見る（最大3回）
+	AABB pa = player_->GetAABB();
+	for (int i = 0; i < goalCount_; ++i) {
+		if (Intersects(pa, goalWorldRects_[i])) {
+			Transition::FadeToWith(
+				Transition::TransitionType::FadeSlideUp,
+				[]() { return new ClearScene(); },
+				0.6f, 1.0f
+			);
+			return;
+		}
+	}
 }
 
 void GameScene::TitleUpdate() {
@@ -314,6 +340,10 @@ void GameScene::GenerateBlocks() {
 	uint32_t numBlockVirtical = mapChipField_->GetNumBlockVertical();
 	uint32_t numBlockHorizontal = mapChipField_->GetNumBlockHorizontal();
 
+	//ゴール収集の初期化
+	goalCount_ = 0;
+
+
 	blocks_.resize(numBlockVirtical);
 	for (uint32_t i = 0; i < numBlockVirtical; i++) {
 		blocks_[i].resize(numBlockHorizontal);
@@ -324,6 +354,24 @@ void GameScene::GenerateBlocks() {
 		for (uint32_t j = 0; j < numBlockHorizontal; j++) {
 			// MapChipField からマップチップのタイプを取得
 			MapChipField::MapChipType mapChipType = mapChipField_->GetMapChipTypeByIndex(j, i);
+
+			// ★ゴールのワールド矩形を記録（最大3）
+			if (mapChipType == MapChipField::MapChipType::kGoal && goalCount_ < 3) {
+				float gx0 = j * kBlockWidth;
+				float gy0 = kBlockHeight * (numBlockVirtical - 1 - i);
+				goalWorldRects_[goalCount_++] = RectF{ gx0, gy0, gx0 + kBlockWidth, gy0 + kBlockHeight };
+				// 見た目で置きたいなら下の“ブロック生成”もそのまま通す/通さないはお好みで
+				// 見た目も出す場合（専用モデル）
+				blocks_[i][j] = new ModelObject();
+				blocks_[i][j]->Initialize(p_fngine_->GetD3D12System(), goalModel_->GetModelData());
+				blocks_[i][j]->SetFngine(p_fngine_);
+				blocks_[i][j]->textureHandle_ = goalModel_->textureHandle_;
+				blocks_[i][j]->worldTransform_.get_.Translation().x = gx0;
+				blocks_[i][j]->worldTransform_.get_.Translation().y = gy0;
+
+				continue;
+			}
+
 
 			if (mapChipType == MapChipField::MapChipType::kTrap) {
 				// === 敵スポーン ===

@@ -6,6 +6,11 @@
 #include "EnemyManager.h"
 #include "Particle.h"
 
+struct RectF { float x0, y0, x1, y1; };
+
+
+
+
 class GameScene 
 	:public Scene
 {
@@ -39,6 +44,7 @@ private:
 	std::unique_ptr<ModelObject> bulletModel_ = nullptr;
 	std::unique_ptr<ModelObject> enemyModel_ = nullptr;
 	std::unique_ptr<ModelObject> arrowModel_ = nullptr;
+	std::unique_ptr<ModelObject> goalModel_ = nullptr;
 
 	// マップチップフィールド
 	MapChipField* mapChipField_;
@@ -71,7 +77,11 @@ private:
 
 	// ゲームスタートフラグ
 	bool isGameStart_ = false;
+
+	std::array<RectF, 3> goalWorldRects_{};
+	int goalCount_ = 0;
 };
+
 
 
 
