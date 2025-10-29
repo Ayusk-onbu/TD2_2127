@@ -8,6 +8,7 @@
 #include "AABB.h"
 #include "LineObject.h"
 #include "SpriteObject.h"
+#include "Particle.h"
 
 
 class MapChipField;
@@ -54,6 +55,8 @@ public:
 	void LeftCollision(CollisionMapInfo& info);
 	void OnWallCollision(const CollisionMapInfo& info);
 	bool IsOnGround();
+	bool IsOnG() { return state_ == PlayerState::kGround ? true : false; }
+	bool IsCanShot() const { return canAirShot_; }
 
 private:
 	void StartApexSpin();
@@ -107,6 +110,8 @@ private:
 	SpriteObject isGunSprite_;
 	int isGunTexTextureHandle_ = -1;
 	WorldTransform isGunSpriteWorldTransform_;
+
+	ModelParticleEmitter onGroundEmitter_;
 
 	Fngine* fngine_ = nullptr;
 	Audio se_;

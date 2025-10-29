@@ -11,6 +11,7 @@ public:
 
 	void SetWVPData(Matrix4x4 WVP,Matrix4x4 world,Matrix4x4 uv);
 	void SetColor(Vector4 color) { object_.materialData_->color = color; }
+	void SetAbleLight(const bool& isLight) { object_.isLight_ = isLight; }
 private:
 	void InitializeResource(D3D12System& d3d12);
 
