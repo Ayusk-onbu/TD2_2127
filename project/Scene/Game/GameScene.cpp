@@ -112,6 +112,14 @@ void GameScene::Initialize() {
 	TRWorld_.set_.Translation(mapChipField_->GetMapChipPositionByIndex(15, 120));
 	TRTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/TutorialSprite.png");
 
+	backgroundModel_.Initialize(p_fngine_->GetD3D12System(), "cube.obj", "resources/cube");
+	backgroundModel_.SetFngine(p_fngine_);
+	backgroundModel_.worldTransform_.set_.Scale({ 250.0f,250.0f,0.0f });
+	backgroundModel_.worldTransform_.set_.Translation({ -60.0f,50.0f,100.0f });
+	backgroundModel_.SetColor({ 0.529f,0.808f,0.902f,1.0f });
+	backgroundModel_.SetLightEnable(false);
+	backgroundModel_.textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/ulthimaSky.png");
+
 	p_fngine_->GetMusic().GetBGM().SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/maou_bgm_fantasy02.mp3"));
 	p_fngine_->GetMusic().GetBGM().SetPlayAudioBuf();
 
@@ -337,8 +345,7 @@ void GameScene::TitleUpdate() {
 }
 
 void GameScene::Draw() {
-
-
+	
 	// ブロックの描画
 	for (uint32_t i = 0; i < blocks_.size(); ++i) {
 		for (uint32_t j = 0; j < blocks_[i].size(); ++j) {
@@ -351,6 +358,10 @@ void GameScene::Draw() {
 			worldTransformBlock->Draw();
 		}
 	}
+
+	backgroundModel_.LocalToWorld();
+	backgroundModel_.SetWVPData(CameraSystem::GetInstance()->GetActiveCamera()->DrawCamera(backgroundModel_.worldTransform_.mat_));
+	backgroundModel_.Draw();
 
 	// 自キャラの描画
 	player_->Draw();
