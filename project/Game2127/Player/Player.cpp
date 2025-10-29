@@ -66,6 +66,7 @@ void Player::Initialize(ModelObject* model, ModelObject* arrowModel, const Vecto
 void Player::Update() {
 	CameraSystem::GetInstance()->GetActiveCamera()->targetPos_ = obj_->worldTransform_.transform_.translation_;
 	if (isDead_) {
+		
 		playingState_ = PlayingState::kGameOver;
 
 		aliveTimer_ += 1.0f / 60.0f;
@@ -180,7 +181,7 @@ void Player::Update() {
 		// 回転しているときの処置
 		if (canAirShot_ && InputManager::GetJump()) {
 			// 弾が撃てる状態の時、かつジャンプ入力があった時
-
+			se_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/shot.mp3"), false);
 			// 回転の値を抽出
 			float angle = obj_->worldTransform_.get_.Rotation().z;
 			// 弾の速度を計算

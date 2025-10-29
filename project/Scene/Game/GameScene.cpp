@@ -226,6 +226,7 @@ void GameScene::GameUpdate() {
 				else {
 
 					player_->OnCollision();
+					GameSceneSe_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/dead.mp3"), false);
 				}
 
 				break; // 一体処理したらループを抜ける
