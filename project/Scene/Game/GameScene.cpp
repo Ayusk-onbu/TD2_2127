@@ -61,7 +61,17 @@ void GameScene::Initialize() {
 	player_->SetMapChipField(mapChipField_);
 
 	// どこかの初期化処理
+	titleSprite_.Initialize(p_fngine_->GetD3D12System(), 800.0f, 400.0f);
+	titleWorld_.Initialize();
+	titleWorld_.set_.Scale({ 0.85f,0.85f,0.85f });
+	titleWorld_.set_.Translation({ 640.0f - 400.0f * titleWorld_.get_.Scale().x,100.0f,0.0f});
+	titleTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/Title/title.png");
 
+	pressSpaceSprite_.Initialize(p_fngine_->GetD3D12System(), 800.0f, 400.0f);
+	pressSpaceWorld_.Initialize();
+	pressSpaceWorld_.set_.Scale({ 0.575f,0.575f,0.575f });
+	pressSpaceWorld_.set_.Translation({ 640.0f - 400.0f * pressSpaceWorld_.get_.Scale().x,150.0f + 300.0f,0.0f });
+	pressSpaceTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/Title/press_space.png");
 
 	// Particle　テンプレート
 	modelEmitter.SetTexture(TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg"));
@@ -189,6 +199,11 @@ void GameScene::TitleUpdate() {
 		// ゲームを開始していない状態
 		if (isTitleFirst_ == false) {
 			titleTimer_ += 1.0f / 60.0f; // 仮に60FPSとして時間を進める	
+
+			// ここからタイトルのボタンを推す前の処理
+
+			// ここまでタイトルの処理
+
 			if (titleTimer_ >= titleLoopTime_) {
 				//　時間がタイトルのループタイムを超えたら初期値に戻す
 				titleTimer_ = 0.0f;
@@ -205,9 +220,11 @@ void GameScene::TitleUpdate() {
 			// 最初のフラグが立っていれば
 			titleToGameFadeTimer_ += 1.0f / 60.0f; // 仮に60FPSとして時間を進める
 
-			// ここに時間によるFadeやイージング処理を書く
+			// ここから時間によるFadeやイージング処理を書く
 			// カメラの半径をイージングで変化
 			titleCameraRadius_ = Easing_Float(30.0f, 50.0f, titleToGameFadeTimer_, titleToGameFadeDuration_, EASINGTYPE::InSine);
+
+			// ここまで時間によるFadeやイージング処理を書く
 
 			if (titleToGameFadeTimer_ >= titleToGameFadeDuration_) {
 				isGameStart_ = true;
@@ -242,6 +259,23 @@ void GameScene::Draw() {
 	bulletManager_->Draw();
 	enemyManager_->Draw();
 
+	if (!isGameStart_) {
+		titleWorld_.LocalToWorld();
+		titleSprite_.SetWVPData(
+			CameraSystem::GetInstance()->GetActiveCamera()->DrawUI(titleWorld_.mat_),
+			titleWorld_.mat_,
+			Matrix4x4::Make::Identity()
+		);
+		titleSprite_.Draw(p_fngine_->GetCommand(),p_fngine_->GetPSO(),p_fngine_->GetLight(),TextureManager::GetInstance()->GetTexture(titleTextureHandle_));
+
+		pressSpaceWorld_.LocalToWorld();
+		pressSpaceSprite_.SetWVPData(
+			CameraSystem::GetInstance()->GetActiveCamera()->DrawUI(pressSpaceWorld_.mat_),
+			pressSpaceWorld_.mat_,
+			Matrix4x4::Make::Identity()
+		);
+		pressSpaceSprite_.Draw(p_fngine_->GetCommand(), p_fngine_->GetPSO(), p_fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(pressSpaceTextureHandle_));
+	}
 	
 }
 

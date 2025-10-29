@@ -61,7 +61,13 @@ private:
 	float titleCameraRadius_ = 30.0f;// タイトルのカメラの半径	
 
 	// タイトルのスプライト
+	SpriteObject titleSprite_;
+	WorldTransform titleWorld_;
+	int titleTextureHandle_ = -1;
 
+	SpriteObject pressSpaceSprite_;
+	WorldTransform pressSpaceWorld_;
+	int pressSpaceTextureHandle_ = -1;
 
 	// ゲームスタートフラグ
 	bool isGameStart_ = false;

@@ -71,7 +71,6 @@ void Player::Update() {
 	switch (state_) {
 	case PlayerState::kGround:
 		// 地面にいるときの処理
-
 		velocity_.y = 0;// 落ちないように
 		if (InputManager::GetJump()) {
 			// ジャンプ開始
@@ -258,7 +257,7 @@ void Player::Update() {
 
 void Player::Draw() {
 
-	if (canAirShot_) {
+	if (canAirShot_ && PlayerState::kGround != state_) {
 		//isGunSpriteWorldTransform_.set_.Translation(obj_->worldTransform_.get_.Translation());
 		//isGunSpriteWorldTransform_.get_.Translation().x += 1.0f;
 		//isGunSpriteWorldTransform_.get_.Translation().y += 2.0f;
