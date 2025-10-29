@@ -446,7 +446,7 @@ void StageEditor::Update() {
         }
     }
 
-    ImGui::Begin("Camera");
+   /* ImGui::Begin("Camera");
     if (ImGui::Button("DebugMode")) {
         CameraSystem::GetInstance()->SetActiveCamera("DebugCamera");
     }
@@ -456,7 +456,7 @@ void StageEditor::Update() {
     else if (ImGui::Button("DebugmodeAdd")) {
         CameraSystem::GetInstance()->GetActiveCamera()->AddControllers(CameraType::Debug);
     }
-    ImGui::End();
+    ImGui::End();*/
 
 }
 
@@ -521,7 +521,7 @@ void StageEditor::Draw() {
         char buf[16]; snprintf(buf, sizeof(buf), "%d", m.tileId);
         dl->AddText(ImVec2(x0 + 2, y0 + 2), IM_COL32(255, 255, 255, 220), buf);
     }
-
+#ifdef _DEBUG
     // ======== UI ========
     if (ImGui::Begin("Grid Settings")) {
         ImGui::Checkbox("Show Grid", &showGrid);
@@ -592,6 +592,7 @@ void StageEditor::Draw() {
 
         ImGui::End();
     }
+#endif // _DEBUG
 
     // ======== モデル描画 ========
     auto* cam = CameraSystem::GetInstance()->GetActiveCamera();

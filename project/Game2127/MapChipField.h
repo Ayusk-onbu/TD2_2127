@@ -11,7 +11,8 @@ public:
 		kBlock,
 		kTrap,
 		kDestroiable,
-		kMapChipTypeCount
+		kMapChipTypeCount,
+		kGoal
 	};
 
 	struct MapChipData {
