@@ -68,6 +68,7 @@ public:
     int particleLife = 60;      // パーティクルの寿命（フレーム数）
     int frameCounter = 0;
 
+	Vector3 color = { 1.0f,1.0f,1.0f };
     float startAlpha = 1.0f;
     float endAlpha = 0.0f;
 
@@ -104,6 +105,7 @@ public:
 	void SetSpawnArea(const AABB& area) { spawnArea = area; }
 	void SetStartRotation(const Vector3& rotation) { startRotation = rotation; }
 	void SetEndRotation(const Vector3& rotation) { endRotation = rotation; }
+	void SetColor(const Vector3& col) { color = col; }
 
     void Update();
 

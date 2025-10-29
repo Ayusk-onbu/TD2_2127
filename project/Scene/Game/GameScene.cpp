@@ -76,19 +76,20 @@ void GameScene::Initialize() {
 	pressSpaceTextureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/Title/press_space.png");
 
 	// Particle　テンプレート
-	modelEmitter.SetTexture(TextureManager::GetInstance()->LoadTexture("resources/cube/cube.jpg"));
+	modelEmitter.SetTexture(TextureManager::GetInstance()->LoadTexture("resources/GridLine.png"));
 	modelEmitter.SetModelData(blockModel_->GetModelData());
 	modelEmitter.SetEmitter(playerPosition);
 	modelEmitter.SetDirection({ 0.0f, 1.0f, 0.0f }); // 真上
-	modelEmitter.SetSpeed(0.4f);
+	modelEmitter.SetSpeed(0.28f);
 	modelEmitter.SetParticleLife(140);
 	modelEmitter.SetSpawnCount(1);
-	modelEmitter.SetSpawnInterval(10);
+	modelEmitter.SetSpawnInterval(30);
+	modelEmitter.SetColor({ 0.5f,0.5f,0.5f });
 	modelEmitter.SetStartAlpha(1.0f);
 	modelEmitter.SetEndAlpha(0.0f);
 	modelEmitter.SetStartScale({ 1.0f,1.0f,1.0f });
-	modelEmitter.SetEndScale({ 0.1f,0.1f,0.1f });
-	modelEmitter.SetSpawnArea({ {-10.5f,0.0f,-10.5f}, {10.5f,0.0f,10.5f} });
+	modelEmitter.SetEndScale({ -0.1f,-0.1f,-0.1f });
+	modelEmitter.SetSpawnArea({ {-15.5f,0.0f,-10.5f}, {15.5f,0.0f,10.5f} });
 	modelEmitter.SetStartRotation({ 0.0f,0.0f,0.0f });
 	modelEmitter.SetEndRotation({ Deg2Rad(360.0f),Deg2Rad(360.0f),Deg2Rad(360.0f) });
 	modelEmitter.SetFngine(p_fngine_);
@@ -112,7 +113,11 @@ void GameScene::Update() {
 	if (isGameStart_ == true) {
 		GameUpdate();
 	}
+	Vector3 pos = CameraSystem::GetInstance()->GetActiveCamera()->GetTranslation();
+	pos.y -= 12.0f;
+	pos.z = playerModel_->worldTransform_.get_.Translation().z + 10.0f;
 
+	modelEmitter.SetEmitter(pos);
 	modelEmitter.Update();
 #ifdef _DEBUG
 	auto& key = InputManager::GetKey();
@@ -203,6 +208,22 @@ void GameScene::TitleUpdate() {
 			titleTimer_ += 1.0f / 60.0f; // 仮に60FPSとして時間を進める	
 
 			// ここからタイトルのボタンを推す前の処理
+			if (titleTimer_ <= titleLoopTime_ / 2.0f) {
+				// タイトルのイージング処理
+				Easing(titleWorld_.get_.Translation(), { 640.0f - 400.0f * titleWorld_.get_.Scale().x,100.0f,0.0f },
+					{ 640.0f - 400.0f * titleWorld_.get_.Scale().x,100.0f + 15.0f,0.0f }, titleTimer_, titleLoopTime_ / 2.0f, EASINGTYPE::OutSine);
+				// PressSpaceのイージング処理
+				Easing(pressSpaceWorld_.get_.Translation(), { 640.0f - 400.0f * pressSpaceWorld_.get_.Scale().x,150.0f + 300.0f,0.0f },
+					{ 640.0f - 400.0f * pressSpaceWorld_.get_.Scale().x,150.0f + 300.0f + 15.0f,0.0f }, titleTimer_, titleLoopTime_ / 2.0f, EASINGTYPE::OutSine);
+			}
+			else {
+				// タイトルのイージング処理
+				Easing(titleWorld_.get_.Translation(), { 640.0f - 400.0f * titleWorld_.get_.Scale().x,100.0f + 15.0f,0.0f },
+					{ 640.0f - 400.0f * titleWorld_.get_.Scale().x,100.0f,0.0f }, titleTimer_, titleLoopTime_, EASINGTYPE::InSine);
+				// PressSpaceのイージング処理
+				Easing(pressSpaceWorld_.get_.Translation(), { 640.0f - 400.0f * pressSpaceWorld_.get_.Scale().x,150.0f + 300.0f + 15.0f,0.0f },
+					{ 640.0f - 400.0f * pressSpaceWorld_.get_.Scale().x,150.0f + 300.0f,0.0f }, titleTimer_, titleLoopTime_, EASINGTYPE::InSine);
+			}
 
 			// ここまでタイトルの処理
 
@@ -226,6 +247,11 @@ void GameScene::TitleUpdate() {
 			// カメラの半径をイージングで変化
 			titleCameraRadius_ = Easing_Float(30.0f, 50.0f, titleToGameFadeTimer_, titleToGameFadeDuration_, EASINGTYPE::InSine);
 
+			// タイトルたちのαを薄くする
+			float titleAlpha = Easing_Float(1.0f, 0.0f, titleToGameFadeTimer_, titleToGameFadeDuration_, EASINGTYPE::OutSine);
+			titleSprite_.SetColor({ 1.0f,1.0f,1.0f,titleAlpha });
+			pressSpaceSprite_.SetColor({ 1.0f,1.0f,1.0f,titleAlpha });
+
 			// ここまで時間によるFadeやイージング処理を書く
 
 			if (titleToGameFadeTimer_ >= titleToGameFadeDuration_) {
@@ -243,8 +269,6 @@ void GameScene::TitleUpdate() {
 void GameScene::Draw() {
 	// 自キャラの描画
 	player_->Draw();
-	
-	modelEmitter.Draw();
 
 	// ブロックの描画
 	for (uint32_t i = 0; i < blocks_.size(); ++i) {
@@ -278,6 +302,9 @@ void GameScene::Draw() {
 		);
 		pressSpaceSprite_.Draw(p_fngine_->GetCommand(), p_fngine_->GetPSO(), p_fngine_->GetLight(), TextureManager::GetInstance()->GetTexture(pressSpaceTextureHandle_));
 	}
+	p_fngine_->GetPSO().SetBlendState(BLENDMODE::Additive);
+	modelEmitter.Draw();
+	p_fngine_->GetPSO().SetBlendState(BLENDMODE::AlphaBlend);
 	
 }
 

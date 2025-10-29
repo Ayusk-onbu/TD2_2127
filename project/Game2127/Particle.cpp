@@ -90,7 +90,7 @@ void ModelParticleEmitter::Update() {
             p.model->SetFngine(fngine_);
             p.model->worldTransform_.set_.Translation(p.position);
             p.model->worldTransform_.set_.Scale(startScale);
-            p.model->SetColor({ 1.0f,1.0f,1.0f,startAlpha });
+            p.model->SetColor({color.x,color.y,color.z,startAlpha });
             p.model->textureHandle_ = textureHandle;
             particles.push_back(std::move(p));
         }
