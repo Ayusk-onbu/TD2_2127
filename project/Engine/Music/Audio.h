@@ -86,7 +86,7 @@ public:
 	/// </summary>
 	/// <param name="xAudio2"></param>
 	/// <param name="soundData"></param>
-	void SoundPlayWave(const SoundData& soundData);
+	void SoundPlayWave(const SoundData& soundData,bool isLoop = true);
 
 	/// <summary>
 	/// 指揮者とスピーカーの用意一回でいい

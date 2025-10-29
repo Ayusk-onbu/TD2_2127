@@ -408,6 +408,9 @@
     <ClCompile Include="UsefulTool\Easing\EasingType.cpp">
       <Filter>UsefulTool\Easing</Filter>
     </ClCompile>
+    <ClCompile Include="Game2127\Particle.cpp">
+      <Filter>Game2127</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imconfig.h">
@@ -691,6 +694,9 @@
     </ClInclude>
     <ClInclude Include="UsefulTool\Easing\EasingType.h">
       <Filter>UsefulTool\Easing</Filter>
+    </ClInclude>
+    <ClInclude Include="Game2127\Particle.h">
+      <Filter>Game2127</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

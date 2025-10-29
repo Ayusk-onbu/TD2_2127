@@ -4,6 +4,7 @@
 #include "WorldTransform.h"
 #include "Player.h"
 #include "EnemyManager.h"
+#include "Particle.h"
 
 class GameScene 
 	:public Scene
@@ -45,6 +46,8 @@ private:
 	BulletManager* bulletManager_ = nullptr;
 	EnemyManager* enemyManager_ = nullptr;
 
+	ModelParticleEmitter modelEmitter;
+
 	//==== [  ] ====
 	// Title Scene についての変数
 	//==== ==== ====
@@ -58,7 +61,13 @@ private:
 	float titleCameraRadius_ = 30.0f;// タイトルのカメラの半径	
 
 	// タイトルのスプライト
+	SpriteObject titleSprite_;
+	WorldTransform titleWorld_;
+	int titleTextureHandle_ = -1;
 
+	SpriteObject pressSpaceSprite_;
+	WorldTransform pressSpaceWorld_;
+	int pressSpaceTextureHandle_ = -1;
 
 	// ゲームスタートフラグ
 	bool isGameStart_ = false;

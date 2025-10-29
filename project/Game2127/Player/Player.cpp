@@ -71,7 +71,6 @@ void Player::Update() {
 	switch (state_) {
 	case PlayerState::kGround:
 		// 地面にいるときの処理
-
 		velocity_.y = 0;// 落ちないように
 		if (InputManager::GetJump()) {
 			// ジャンプ開始
@@ -79,6 +78,7 @@ void Player::Update() {
 			//stompJumpAvailable_ = false;
 			stompJumpAvailable_ = true;
 			canAirShot_ = true;
+			se_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/ゲージ回復2.mp3"), false);
 			// ジャンプ状態へ移行
 			state_ = PlayerState::kJump;
 		}
@@ -116,7 +116,7 @@ void Player::Update() {
 		if (stompJumpAvailable_ && InputManager::GetJump()) {
 			// 敵をたおしてジャンプが可能な時に、ジャンプ入力があれば
 			StartApexSpin();
-
+			se_.SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/ゲージ回復2.mp3"),false);
 			// ジャンプができなくなる
 			stompJumpAvailable_ = false;
 			break;
@@ -257,7 +257,7 @@ void Player::Update() {
 
 void Player::Draw() {
 
-	if (canAirShot_) {
+	if (canAirShot_ && PlayerState::kGround != state_) {
 		//isGunSpriteWorldTransform_.set_.Translation(obj_->worldTransform_.get_.Translation());
 		//isGunSpriteWorldTransform_.get_.Translation().x += 1.0f;
 		//isGunSpriteWorldTransform_.get_.Translation().y += 2.0f;

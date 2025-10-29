@@ -81,7 +81,7 @@ SoundData Audio::SoundLoadWave(const char* filename) {
 #pragma endregion
 }
 
-void Audio::SoundPlayWave(const SoundData& soundData) {
+void Audio::SoundPlayWave(const SoundData& soundData,bool isLoop) {
 #pragma region 波形フォーマアットをもとにSourceVoiceの生成
 	HRESULT result;
 	IXAudio2SourceVoice* pSourceVoice = nullptr;
@@ -93,6 +93,9 @@ void Audio::SoundPlayWave(const SoundData& soundData) {
 	buf.pAudioData = soundData.pBuffer;// 
 	buf.AudioBytes = soundData.bufferSize;// 
 	buf.Flags = XAUDIO2_END_OF_STREAM;// 設定したい
+	if (isLoop) {
+		buf.LoopCount = XAUDIO2_LOOP_INFINITE;// 無限ループ
+	}
 #pragma endregion
 #pragma region 波形データの再生
 	result = pSourceVoice->SubmitSourceBuffer(&buf);// 同じFmtならここで音を変える

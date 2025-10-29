@@ -108,5 +108,5 @@ private:
 	WorldTransform isGunSpriteWorldTransform_;
 
 	Fngine* fngine_ = nullptr;
-
+	Audio se_;
 };
