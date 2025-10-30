@@ -120,8 +120,7 @@ void GameScene::Initialize() {
 	backgroundModel_.SetLightEnable(false);
 	backgroundModel_.textureHandle_ = TextureManager::GetInstance()->LoadTexture("resources/ulthimaSky.png");
 
-	p_fngine_->GetMusic().GetBGM().SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/maou_bgm_fantasy02.mp3"));
-	p_fngine_->GetMusic().GetBGM().SetPlayAudioBuf();
+	
 
 	// カメラコントローラ(なんか追加しないとか)
 	CameraSystem::GetInstance()->MakeCamera("DebugCamera", CameraType::Debug);

@@ -27,6 +27,9 @@ void SceneDirector::Initialize(Scene& firstScene) {
 	// フェード管理の初期化（最初のシーン開始時に一度だけ）
 	Transition::Setup(*p_fngine_, *this, 1280, 720);
 	Transition::SetDelta(1.0f / 60.0f);
+
+	p_fngine_->GetMusic().GetBGM().SoundPlayWave(MediaAudioDecoder::DecodeAudioFile(L"resources/maou_bgm_fantasy02.mp3"));
+	p_fngine_->GetMusic().GetBGM().SetPlayAudioBuf();
 }
 
 void SceneDirector::Run() {
